@@ -1,0 +1,408 @@
+================================================================
+ARTMIND — COMPUTATIONAL STYLE PROTOCOL
+Satish / Contemporary Mixed Media / Surface Archaeology
+Version 1.0 · March 2026
+SECRET RECIPE — for prompt_parameters table + Sheet 8
+================================================================
+
+STYLE CATEGORY: Contemporary Mixed Media / Surface Archaeology
+ARTIST: Satish
+CALIBRATED FROM: Memory Lane v3 (March 2026) + full session
+PROTOCOL VERSION: 1
+
+OVERVIEW:
+This style category requires fundamental corrections to standard
+neuroaesthetic computational algorithms. Six of the eight
+dimensions require style-specific methods. Two dimensions
+(Emotional Valence and Narrative Pull) are not computationally
+assessable and require AI language model evaluation only.
+
+The evidence base: Memory Lane v3 was computationally analysed
+in March 2026. Three dimensions showed significant divergence
+between computational scores and correct qualitative scores.
+These divergences define the corrections in this protocol.
+
+================================================================
+DIMENSION 1 — VISUAL SALIENCE
+================================================================
+
+STANDARD METHOD: OpenCV StaticSaliencySpectralResidual
+STATUS: VALID for this style with one correction
+
+COMPUTATIONAL EVIDENCE (Memory Lane):
+  Computational: 100/100
+  Qualitative:    90/100
+  Delta:          +10 (AI too high)
+
+CORRECTION:
+High-resolution images (3000px+) amplify local contrast
+and produce inflated salience scores. ALWAYS resize to
+1024px max before computing saliency. This normalises
+to gallery-viewing-distance perception.
+
+PYTHON IMPLEMENTATION:
+  import cv2
+  import numpy as np
+
+  def compute_salience(img_path):
+      img = cv2.imread(img_path)
+      # Resize to simulate gallery viewing distance
+      h, w = img.shape[:2]
+      if max(h, w) > 1024:
+          scale = 1024 / max(h, w)
+          img = cv2.resize(img, (int(w*scale), int(h*scale)))
+
+      saliency = cv2.saliency.StaticSaliencySpectralResidual_create()
+      _, smap = saliency.computeSaliency(img)
+      smap = (smap * 255).astype(np.uint8)
+
+      # Concentration ratio: how focused is the salience?
+      threshold = np.percentile(smap, 80)
+      high_area = np.sum(smap > threshold) / smap.size
+      concentration = (1 - high_area) * 100
+      score = min(100, concentration * 1.25)
+      return round(score)
+
+ADDITIONAL CHECK FOR THIS STYLE:
+Absorbed figures in complex grounds — if figure is present,
+add +5 to salience score (face/figure detection override).
+The absorbed figure is the primary attractor in this practice
+even when the surface complexity is high.
+
+================================================================
+DIMENSION 2 — GAZE RETENTION
+================================================================
+
+STANDARD METHOD: Multiple salient region counting
+STATUS: PARTIALLY VALID — supplement with zone analysis
+
+COMPUTATIONAL PROXY:
+Count distinct salient regions above threshold. More return
+zones = higher retention potential.
+
+PYTHON IMPLEMENTATION:
+  def compute_gaze_retention(img_path):
+      img = cv2.imread(img_path)
+      if max(img.shape[:2]) > 1024:
+          scale = 1024 / max(img.shape[:2])
+          img = cv2.resize(img, (int(img.shape[1]*scale),
+                                  int(img.shape[0]*scale)))
+
+      # Fine-grained saliency for zone detection
+      fg = cv2.saliency.StaticSaliencyFineGrained_create()
+      _, fmap = fg.computeSaliency(img)
+      fmap = (fmap * 255).astype(np.uint8)
+
+      # Count distinct regions (connected components above threshold)
+      _, binary = cv2.threshold(fmap, 127, 255, cv2.THRESH_BINARY)
+      num_components, _ = cv2.connectedComponents(binary)
+      # 3-7 distinct zones = optimal retention for this practice
+      zone_score = min(100, (num_components / 6) * 80 + 20)
+      return round(zone_score)
+
+NOTE FOR THIS STYLE:
+Surface archaeology creates many micro-zones (embedded text,
+collage edges, layered marks). These generate genuine return
+loops. Do not penalise high zone counts — they are features,
+not noise.
+
+================================================================
+DIMENSION 3 — PROCESSING FLUENCY
+================================================================
+
+STANDARD METHOD: Edge density + figure-ground ratio
+STATUS: VALID — weight figure-ground more heavily
+
+COMPUTATIONAL PROXY:
+1. Entry point clarity (dominant salient region size)
+2. Figure-ground separation ratio
+3. Spatial zone count (for mixed media: 3-5 zones = optimal)
+
+PYTHON IMPLEMENTATION:
+  def compute_fluency(img_path):
+      img = cv2.imread(img_path)
+      gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+      # Entry point clarity
+      saliency = cv2.saliency.StaticSaliencySpectralResidual_create()
+      _, smap = saliency.computeSaliency(img)
+      smap = (smap * 255).astype(np.uint8)
+      _, primary = cv2.threshold(smap, 200, 255, cv2.THRESH_BINARY)
+      entry_clarity = min(100, (np.sum(primary > 0) /
+                           (smap.size * 0.05)) * 60)
+
+      # Edge density for spatial logic
+      edges = cv2.Canny(gray, 50, 150)
+      edge_density = np.sum(edges > 0) / edges.size
+      # 0.08-0.18 = good fluency range for this practice
+      if 0.08 <= edge_density <= 0.18:
+          edge_score = 85
+      elif edge_density < 0.08:
+          edge_score = edge_density / 0.08 * 70
+      else:
+          edge_score = max(60, 85 - (edge_density - 0.18) * 200)
+
+      return round((entry_clarity * 0.5 + edge_score * 0.5))
+
+================================================================
+DIMENSION 4 — EMOTIONAL VALENCE
+================================================================
+
+STANDARD METHOD: NOT COMPUTABLE
+STATUS: AI LANGUAGE MODEL ONLY
+
+REASON: Emotional valence in this practice depends on:
+- Personal specificity transformed to archetype
+- Suppressed vs performed feeling (inverse of visible emotion)
+- Private symbols that resist explanation
+- The gap between what is shown and what is implied
+
+No pixel analysis can detect whether a fish symbol is private
+and meaningful, or whether a figure's absorption is
+psychologically charged or merely decorative.
+
+EVALUATION: Claude API with dimension definition + scoring
+anchors + style context. No computational component.
+
+KEY PROMPT INSTRUCTION FOR THIS DIMENSION:
+"Suppressed feeling scores HIGHER than performed feeling.
+A figure whose grief is withheld activates the viewer's
+own emotional system more than a figure who displays grief.
+A private symbol that resists explanation scores higher than
+an illustrative symbol that completes its meaning."
+
+================================================================
+DIMENSION 5 — COMPLEXITY
+================================================================
+
+STANDARD METHOD: Shannon entropy + edge density
+STATUS: WRONG FOR THIS STYLE — use fractal dimension
+
+COMPUTATIONAL EVIDENCE (Memory Lane):
+  Shannon entropy:    93.6/100 (correctly high)
+  Edge density:       65.5/100 (incorrectly low)
+  Spatial variation:  24.9/100 (incorrectly low)
+  Combined score:     67/100   (WRONG)
+  Qualitative score:  90/100
+  Delta:             -23 (AI significantly too low)
+
+ROOT CAUSE:
+Edge density measures surface marks but misses structural
+complexity. This practice embeds complexity in:
+1. Three-territory psychological architecture (invisible to pixels)
+2. Archaeological layers beneath paint (invisible to pixels)
+3. Multilingual embedded text (partially visible)
+4. Collage fragments at different scales (partially visible)
+5. WIP session history (completely invisible to pixels)
+
+CORRECT METHOD: Fractal Dimension Analysis
+  from PIL import Image
+  import numpy as np
+
+  def fractal_dimension(img_path):
+      img = Image.open(img_path).convert('L')
+      img_array = np.array(img)
+
+      # Box-counting fractal dimension
+      # Measures self-similar complexity at multiple scales
+      # Appropriate for surface archaeology mark patterns
+      sizes = [2, 4, 8, 16, 32, 64, 128]
+      counts = []
+      threshold = 128
+
+      for size in sizes:
+          binary = (img_array > threshold).astype(int)
+          h, w = binary.shape
+          count = 0
+          for i in range(0, h - size, size):
+              for j in range(0, w - size, size):
+                  if binary[i:i+size, j:j+size].any():
+                      count += 1
+          counts.append(count)
+
+      # Log-log regression for fractal dimension
+      log_sizes = np.log(sizes)
+      log_counts = np.log(counts)
+      slope, _ = np.polyfit(log_sizes, log_counts, 1)
+      fractal_dim = abs(slope)
+
+      # Normalise: typical paintings 1.2-1.8
+      # Surface archaeology: 1.5-1.8 (high complexity)
+      normalised = min(100, ((fractal_dim - 1.0) / 0.8) * 100)
+      return round(normalised)
+
+COMBINED COMPLEXITY SCORE FOR THIS STYLE:
+  fractal_dimension * 0.50    (primary — structural complexity)
+  + shannon_entropy * 0.30    (secondary — pixel diversity)
+  + semantic_AI_score * 0.20  (AI assessment of layer depth)
+
+================================================================
+DIMENSION 6 — MIRROR NEURON ACTIVATION
+================================================================
+
+STANDARD METHOD: Pose detection (MediaPipe / OpenPose)
+STATUS: PARTIALLY VALID — semantic override required
+
+COMPUTATIONAL PROXY:
+Detect human figure presence + key body landmarks.
+Assess holding gesture specifically.
+
+  import mediapipe as mp
+
+  def detect_figure_gesture(img_path):
+      mp_pose = mp.solutions.pose
+      img = cv2.imread(img_path)
+      with mp_pose.Pose(static_image_mode=True) as pose:
+          results = pose.process(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+          if results.pose_landmarks:
+              # Figure detected — base score 60
+              base_score = 60
+              # Check for hand/wrist landmarks (holding gesture)
+              landmarks = results.pose_landmarks.landmark
+              left_wrist = landmarks[mp_pose.PoseLandmark.LEFT_WRIST]
+              right_wrist = landmarks[mp_pose.PoseLandmark.RIGHT_WRIST]
+              # If wrists are close together or near face = holding gesture
+              wrist_proximity = abs(left_wrist.y - right_wrist.y)
+              if wrist_proximity < 0.1:
+                  base_score = 80  # Holding gesture detected
+              return base_score
+          return 40  # No figure detected
+
+SEMANTIC OVERRIDE REQUIRED:
+Computational pose detection cannot assess:
+- Whether the gesture is absorbed (concentrated) or decorative
+- Whether the figure's posture implies a specific bodily state
+- Whether the held object has weight and intention
+AI assessment must supplement the computational baseline.
+
+KEY PROMPT INSTRUCTION FOR THIS DIMENSION:
+"A figure holding something in a specific, weighted way scores
+higher than a figure holding something generically. The
+specificity and intentionality of the gesture determines the
+score, not merely the presence of a held object."
+
+================================================================
+DIMENSION 7 — COLOUR HARMONY
+================================================================
+
+STANDARD METHOD: Warm-cool balance ratio
+STATUS: CRITICALLY WRONG FOR THIS STYLE
+
+COMPUTATIONAL EVIDENCE (Memory Lane):
+  Warm pixels:           92%
+  Cool pixels:            8%
+  WC balance score:   16/100 (WRONG)
+  Qualitative score:  89/100
+  Delta:             -55 (WORST DIVERGENCE IN DATABASE)
+
+ROOT CAUSE:
+Standard algorithms assume warm-cool BALANCE is optimal.
+This practice uses warm DOMINANCE with cool PUNCTUATION.
+The 8% cool is not a failure — it is the entire point.
+
+CORRECT METHOD FOR THIS STYLE:
+
+  def compute_colour_harmony(img_path):
+      img = cv2.imread(img_path)
+      hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+      hue = hsv[:,:,0]
+      sat = hsv[:,:,1]
+      val = hsv[:,:,2]
+
+      # Detect chromatic pixels only
+      chromatic = sat > 40
+      warm_mask = ((hue < 30) | (hue > 150)) & chromatic
+      cool_mask = (hue >= 90) & (hue <= 150) & chromatic
+
+      warm_ratio = warm_mask.sum() / (chromatic.sum() + 1)
+      cool_ratio = cool_mask.sum() / (chromatic.sum() + 1)
+
+      # STYLE-SPECIFIC SCORING (not balance):
+      # Warm dominance with cool punctuation = HIGH SCORE
+      if warm_ratio > 0.75 and cool_ratio > 0.03:
+          # Intentional warm dominance with deliberate cool accent
+          # This is the signature of this style
+          intentionality_score = 88 + (cool_ratio * 100)
+      elif warm_ratio > 0.75 and cool_ratio < 0.03:
+          # Warm dominance without cool punctuation = slightly lower
+          intentionality_score = 70
+      else:
+          # Balanced or cool-dominant = use standard balance score
+          balance = 1 - abs(warm_ratio - cool_ratio)
+          intentionality_score = balance * 85
+
+      # Saturation intentionality
+      mean_sat = np.mean(sat[chromatic]) if chromatic.any() else 0
+      sat_score = min(100, (mean_sat / 180) * 100)
+
+      # Palette restraint (K-means cluster count)
+      # 3-5 clusters = intentional restraint = high score
+      # Already computed in main analysis
+
+      final = (intentionality_score * 0.65 + sat_score * 0.35)
+      return round(min(100, final))
+
+================================================================
+DIMENSION 8 — NARRATIVE PULL
+================================================================
+
+STANDARD METHOD: NOT COMPUTABLE
+STATUS: AI LANGUAGE MODEL ONLY
+
+REASON: Narrative pull requires:
+- Detection of implied (not depicted) story
+- Assessment of productive vs confusing ambiguity
+- Understanding of what is withheld vs what is shown
+- Cultural and art-historical context
+
+No pixel analysis can detect whether a figure looking away
+is implying a story (high score) or is simply poorly
+composed (low score).
+
+EVALUATION: Claude API only. No computational component.
+
+KEY PROMPT INSTRUCTION FOR THIS DIMENSION:
+"The painting implies a story but does not tell it. Score
+high when the viewer cannot finish the story — when multiple
+plausible endings exist. Score low when the story is complete,
+illustrated, or obvious. The figure who looks outside the
+frame at something we cannot see scores higher than the figure
+who looks at us."
+
+================================================================
+CALIBRATION SUMMARY TABLE
+(Memory Lane v3 — March 2026)
+================================================================
+
+Dimension         Computational  Qualitative  Delta  Action
+──────────────────────────────────────────────────────────────
+Visual Salience   100            90           +10    Resize images
+Gaze Retention    —              90           —      Proxy method
+Processing Fluency—              88           —      Standard OK
+Emotional Valence NOT COMPUTABLE 92           —      AI only
+Complexity        67             90           -23    Fractal dim.
+Mirror Neuron     —              84           —      Pose + AI
+Colour Harmony    34             89           -55    New formula
+Narrative Pull    NOT COMPUTABLE 92           —      AI only
+
+================================================================
+STYLE PROTOCOL — INSERTION INTO prompt_parameters TABLE
+================================================================
+
+INSERT INTO prompt_parameters (
+  component, component_type, component_order,
+  content, token_estimate, call_types, active, notes
+) VALUES (
+  'style_protocol',
+  'user_specific',
+  6,
+  '[full content of this document]',
+  350,
+  ARRAY['evaluate_painting'],
+  true,
+  'Satish Contemporary Mixed Media — calibrated March 2026'
+);
+
+================================================================
+END OF STYLE PROTOCOL — v1.0 · March 2026
+================================================================
