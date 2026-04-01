@@ -3,11 +3,15 @@ import '../styles/design-system.css'
 
 export default function PaintingCard({ painting, onClick }) {
   const {
-    title, artist, thumbnail_b64,
+    title, artist, image_url, thumbnail_b64,
     score_overall, score_salience, score_gaze, score_fluency,
     score_emotion, score_complexity, score_mirror, score_colour,
     score_narrative,
   } = painting
+
+  const thumbSrc = image_url
+    ? image_url.replace('full.jpg', 'thumb.jpg')
+    : thumbnail_b64 ? `data:image/jpeg;base64,${thumbnail_b64}` : null
 
   const scores = {
     overall:    score_overall,
@@ -24,8 +28,8 @@ export default function PaintingCard({ painting, onClick }) {
   return (
     <div className="painting-card" onClick={onClick}>
       <div className="painting-card__image">
-        {thumbnail_b64
-          ? <img src={`data:image/jpeg;base64,${thumbnail_b64}`} alt={title} />
+        {thumbSrc
+          ? <img src={thumbSrc} alt={title} />
           : <div className="painting-card__placeholder" />
         }
       </div>

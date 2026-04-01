@@ -25,6 +25,30 @@ const ITEMS = [
     ),
   },
   {
+    id: 'profile',
+    label: 'Profile',
+    icon: (active) => (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <circle cx="10" cy="7" r="3.5" stroke="currentColor" strokeWidth="1.2"
+          fill={active ? 'currentColor' : 'none'} fillOpacity={active ? 0.15 : 0} />
+        <path d="M3 17c0-3.314 3.134-6 7-6s7 2.686 7 6"
+          stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
+    id: 'blog',
+    label: 'Blog',
+    icon: (active) => (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <rect x="3" y="2" width="14" height="16" rx="1"
+          stroke="currentColor" strokeWidth="1.2"
+          fill={active ? 'currentColor' : 'none'} fillOpacity={active ? 0.15 : 0} />
+        <path d="M6 7h8M6 10h8M6 13h5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
     id: 'gallery',
     label: 'Archive',
     icon: (active) => (

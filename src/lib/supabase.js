@@ -11,7 +11,7 @@ export async function getPaintings(userId, filters = {}) {
     .from('paintings')
     .select(`
       slug, title, artist, year, type,
-      thumbnail_b64, score_overall, score_salience,
+      image_url, thumbnail_b64, score_overall, score_salience,
       score_gaze, score_fluency, score_emotion,
       score_complexity, score_mirror, score_colour,
       score_narrative, tags
@@ -60,6 +60,18 @@ export async function getInspirations(filters = {}) {
   return data
 }
 
+export async function getTopInspiration() {
+  const { data, error } = await supabase
+    .from('inspirations')
+    .select('title, creator, influence_note, intensity')
+    .eq('active', true)
+    .order('intensity', { ascending: false })
+    .limit(1)
+    .single()
+  if (error) throw error
+  return data
+}
+
 // ── Blog posts ───────────────────────────────────────────────
 export async function getBlogPosts() {
   const { data, error } = await supabase
@@ -101,6 +113,17 @@ export async function getPaintingSubject(paintingSlug) {
     .select('subject_note, confirmed')
     .eq('painting_slug', paintingSlug)
     .single()
+  return data
+}
+
+// ── Artist profile ───────────────────────────────────────────
+export async function getArtistProfile() {
+  const { data, error } = await supabase
+    .from('artist_profiles')
+    .select('display_name, bio_short, bio_long, practice_statement, city, country, featured_slugs')
+    .limit(1)
+    .single()
+  if (error) throw error
   return data
 }
 

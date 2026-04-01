@@ -38,7 +38,7 @@ const CALL_CONFIG = {
   generate_blog: {
     fetch: ['all_wip_sessions', 'painting_subject', 'linked_inspirations', 'studio_sessions'],
     max_tokens: 3000,
-    include_image: false
+    include_image: true
   },
   morning_message: {
     fetch: ['recent_paintings', 'open_wips', 'top_inspirations', 'evolution_metrics'],
