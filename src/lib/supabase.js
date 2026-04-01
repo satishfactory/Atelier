@@ -186,7 +186,7 @@ export async function getCompanionJournal(paintingSlug) {
 export async function getArtistProfile() {
   const { data, error } = await supabase
     .from('artist_profiles')
-    .select('display_name, bio_short, bio_long, practice_statement, city, country, featured_slugs')
+    .select('*')
     .limit(1)
     .single()
   if (error) throw error

@@ -29,7 +29,7 @@ export default function App() {
         {screen === 'upload'  && <UploadScreen onPaintingClick={openPainting} />}
         {screen === 'gallery' && <GalleryScreen onPaintingClick={openPainting} />}
         {screen === 'blog'    && <BlogScreen onPaintingClick={openPainting} />}
-        {screen === 'profile' && <ProfileScreen onPaintingClick={openPainting} />}
+        {screen === 'profile' && <ProfileScreen onPaintingClick={openPainting} onNavigate={setScreen} />}
         {screen === 'detail'  && <PaintingDetailScreen slug={selectedSlug} onBack={goBack} />}
       </main>
       {screen !== 'detail' && <BottomNav screen={screen} onNavigate={setScreen} />}

@@ -148,6 +148,44 @@ app.post('/api/update-blog-post', async (req, res) => {
   res.json({ ok: true })
 })
 
+// ── Upload profile photo (resize 400px square cover) ─────────
+app.post('/api/upload-profile-photo', async (req, res) => {
+  const { imageBase64 } = req.body || {}
+  if (!imageBase64) return res.status(400).json({ error: 'imageBase64 required' })
+  try {
+    const buffer = Buffer.from(imageBase64, 'base64')
+    const resized = await sharp(buffer)
+      .rotate()
+      .resize(400, 400, { fit: 'cover' })
+      .jpeg({ quality: 85 })
+      .toBuffer()
+    const path = `profiles/artist/photo.jpg`
+    const { error: upErr } = await supabase.storage
+      .from('paintings').upload(path, resized, { contentType: 'image/jpeg', upsert: true })
+    if (upErr) throw new Error(upErr.message)
+    const url = `${process.env.SUPABASE_URL}/storage/v1/object/public/paintings/${path}?t=${Date.now()}`
+    const { error: dbErr } = await supabase.from('artist_profiles').update({ image_url: url }).not('id', 'is', null)
+    if (dbErr) throw new Error(dbErr.message)
+    res.json({ url })
+  } catch (err) {
+    console.error('[upload-profile-photo]', err.message)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ── Update artist profile ─────────────────────────────────────
+app.post('/api/update-artist-profile', async (req, res) => {
+  const { display_name, location, practice_description, website } = req.body || {}
+  const updates = {}
+  if (display_name        !== undefined) updates.display_name        = display_name
+  if (location            !== undefined) updates.location            = location
+  if (practice_description !== undefined) updates.practice_description = practice_description
+  if (website             !== undefined) updates.website             = website
+  const { error } = await supabase.from('artist_profiles').update(updates).not('id', 'is', null)
+  if (error) return res.status(500).json({ error: error.message })
+  res.json({ ok: true })
+})
+
 // ── Update painting status ────────────────────────────────────
 app.post('/api/set-painting-status', async (req, res) => {
   const { slug, status } = req.body || {}
