@@ -79,8 +79,9 @@ app.post('/api/upload-photo', async (req, res) => {
   try {
     const buffer = Buffer.from(imageBase64, 'base64')
     const resized = await sharp(buffer)
+      .rotate()
       .resize(2000, 2000, { fit: 'inside', withoutEnlargement: true })
-      .jpeg({ quality: 90 })
+      .jpeg({ quality: 85 })
       .toBuffer()
     const path = `${slug}/${Date.now()}.jpg`
     const { error: upErr } = await supabase.storage
@@ -104,8 +105,9 @@ app.post('/api/add-painting-image', async (req, res) => {
   try {
     const buffer = Buffer.from(imageBase64, 'base64')
     const resized = await sharp(buffer)
+      .rotate()
       .resize(2000, 2000, { fit: 'inside', withoutEnlargement: true })
-      .jpeg({ quality: 90 })
+      .jpeg({ quality: 85 })
       .toBuffer()
     const path = `${slug}/${label}_${Date.now()}.jpg`
     const { error: upErr } = await supabase.storage

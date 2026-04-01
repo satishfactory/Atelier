@@ -153,6 +153,36 @@ export async function setPaintingVisibility(slug, visibility) {
   if (error) throw error
 }
 
+// ── Toggle painting status (wip / finished) ──────────────────
+export async function setPaintingStatus(slug, status) {
+  const { error } = await supabase
+    .from('paintings').update({ status }).eq('slug', slug)
+  if (error) throw error
+}
+
+// ── All conversations (both roles, asc) for journal matching ─
+export async function getAllConversations(paintingSlug) {
+  const { data, error } = await supabase
+    .from('companion_conversations')
+    .select('id, role, message, session_date, created_at')
+    .eq('painting_slug', paintingSlug)
+    .order('created_at', { ascending: true })
+  if (error) throw error
+  return data || []
+}
+
+// ── Companion journal (all companion messages, asc) ──────────
+export async function getCompanionJournal(paintingSlug) {
+  const { data, error } = await supabase
+    .from('companion_conversations')
+    .select('id, message, created_at, session_date')
+    .eq('painting_slug', paintingSlug)
+    .eq('role', 'companion')
+    .order('created_at', { ascending: true })
+  if (error) throw error
+  return data || []
+}
+
 // ── Artist profile ───────────────────────────────────────────
 export async function getArtistProfile() {
   const { data, error } = await supabase

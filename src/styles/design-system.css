@@ -420,11 +420,7 @@ body {
 }
 .md-table tr:last-child .md-td { border-bottom: none; }
 
-/* ── PaintingDetailScreen ── */
-.detail-screen {
-  min-height: 100vh;
-  padding-bottom: var(--space-8);
-}
+/* ── PaintingDetailScreen (legacy stubs, overridden below) ── */
 .detail-image-wrap {
   position: relative;
   width: 100%;
@@ -466,8 +462,11 @@ body {
 .detail-header { display: flex; flex-direction: column; }
 .detail-scores {
   display: flex;
-  gap: var(--space-5);
-  align-items: flex-start;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: center;
+  max-width: 480px;
+  margin: 0 auto;
 }
 .detail-dimensions {
   flex: 1;
@@ -673,3 +672,52 @@ body {
 }
 .home-blog-row:last-child { border-bottom: none; }
 .home-screen > .home-section:last-child { padding-bottom: var(--space-6); }
+
+/* ── PaintingDetailScreen (rebuilt) ── */
+.detail-screen {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 32px 64px;
+}
+.detail-header {
+  padding: 0;
+}
+.detail-section {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.detail-sections-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  margin-top: 40px;
+}
+.detail-label {
+  color: var(--text-muted);
+  margin-bottom: var(--space-1);
+}
+
+/* ── ConversationThread ── */
+.conv-thread {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.conv-bubble {
+  max-width: 85%;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+}
+.conv-bubble--user {
+  align-self: flex-end;
+  background: var(--warm);
+  color: var(--white);
+}
+.conv-bubble--user .t-small { color: var(--white); }
+.conv-bubble--companion {
+  align-self: flex-start;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+}
