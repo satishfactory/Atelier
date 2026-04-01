@@ -10,21 +10,21 @@ function daysSince(dateStr) {
   return Math.floor(diff / 86400000)
 }
 
-function WipCard({ painting, onClick }) {
+function ScrollCard({ painting, onClick }) {
   const days = daysSince(painting.evaluated_at)
   const thumb = painting.image_url
     ? painting.image_url.replace('full.jpg', 'thumb.jpg')
     : painting.thumbnail_b64 ? `data:image/jpeg;base64,${painting.thumbnail_b64}` : null
   return (
-    <div className="home-wip-card" onClick={() => onClick?.(painting)}>
-      {thumb && <img src={thumb} alt={painting.title} className="home-wip-thumb" />}
-      <div className="home-wip-info">
-        <p className="t-small" style={{ fontWeight: 500 }}>{painting.title}</p>
-        <p className="t-micro" style={{ color: 'var(--text-muted)', marginTop: 'var(--space-1)' }}>
-          Overall {painting.score_overall ?? '—'}
-          {days !== null ? `  ·  ${days}d ago` : ''}
-        </p>
-      </div>
+    <div style={{ width: 200, flexShrink: 0, cursor: 'pointer' }} onClick={() => onClick?.(painting)}>
+      {thumb
+        ? <img src={thumb} alt={painting.title} style={{ width: '100%', height: 150, objectFit: 'cover', borderRadius: 8, display: 'block' }} />
+        : <div style={{ width: '100%', height: 150, borderRadius: 8, background: 'var(--stone)' }} />
+      }
+      <p style={{ fontWeight: 500, fontSize: 14, marginTop: 8 }}>{painting.title}</p>
+      <p style={{ color: 'var(--warm)', fontSize: 12, marginTop: 2 }}>
+        {painting.score_overall ?? '—'}{days !== null ? `  ·  ${days}d ago` : ''}
+      </p>
     </div>
   )
 }
@@ -67,7 +67,9 @@ export default function HomeScreen({ onPaintingClick }) {
         <p className="t-micro home-section-label">In progress</p>
         {wip.length === 0
           ? <p className="t-small" style={{ color: 'var(--text-muted)' }}>No paintings in progress.</p>
-          : wip.map(p => <WipCard key={p.slug} painting={p} onClick={onPaintingClick} />)
+          : <div style={{ display: 'flex', flexDirection: 'row', gap: 16, overflowX: 'auto', paddingBottom: 8 }}>
+              {wip.map(p => <ScrollCard key={p.slug} painting={p} onClick={onPaintingClick} />)}
+            </div>
         }
       </section>
 
@@ -89,13 +91,8 @@ export default function HomeScreen({ onPaintingClick }) {
       {dueReview.length > 0 && (
         <section className="home-section">
           <p className="t-micro home-section-label">No blog post yet</p>
-          <div className="home-review-list">
-            {dueReview.map(p => (
-              <div key={p.slug} className="home-review-row" onClick={() => onPaintingClick?.(p)}>
-                <p className="t-small">{p.title}</p>
-                <span className="t-micro" style={{ color: 'var(--text-muted)' }}>{p.score_overall ?? '—'}</span>
-              </div>
-            ))}
+          <div style={{ display: 'flex', flexDirection: 'row', gap: 16, overflowX: 'auto', paddingBottom: 8 }}>
+            {dueReview.map(p => <ScrollCard key={p.slug} painting={p} onClick={onPaintingClick} />)}
           </div>
         </section>
       )}
