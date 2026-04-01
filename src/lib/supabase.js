@@ -10,14 +10,15 @@ export async function getPaintings(userId, filters = {}) {
   let query = supabase
     .from('paintings')
     .select(`
-      slug, title, artist, year, type,
+      slug, title, artist, year, type, status,
       image_url, thumbnail_b64, score_overall, score_salience,
       score_gaze, score_fluency, score_emotion,
       score_complexity, score_mirror, score_colour,
       score_narrative, tags
     `)
 
-  if (filters.type) query = query.eq('type', filters.type)
+  if (filters.type)   query = query.eq('type', filters.type)
+  if (filters.status) query = query.eq('status', filters.status)
 
   const { data, error } = await query
   if (error) throw error
@@ -116,6 +117,42 @@ export async function getPaintingSubject(paintingSlug) {
   return data
 }
 
+// ── Companion conversations ──────────────────────────────────
+export async function getConversations(paintingSlug, limit = 10) {
+  const { data, error } = await supabase
+    .from('companion_conversations')
+    .select('role, message, created_at')
+    .eq('painting_slug', paintingSlug)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  if (error) throw error
+  return (data || []).reverse()
+}
+
+// ── Add session note ─────────────────────────────────────────
+export async function addSessionNote(paintingSlug, artistNote) {
+  const { data: existing } = await supabase
+    .from('painting_sessions')
+    .select('version')
+    .eq('painting_slug', paintingSlug)
+    .order('version', { ascending: false })
+    .limit(1)
+  const nextVersion = ((existing?.[0]?.version) ?? 0) + 1
+  const { error } = await supabase
+    .from('painting_sessions')
+    .insert({ painting_slug: paintingSlug, version: nextVersion,
+              artist_note: artistNote, session_date: new Date().toISOString().split('T')[0] })
+  if (error) throw error
+  return nextVersion
+}
+
+// ── Toggle painting visibility ───────────────────────────────
+export async function setPaintingVisibility(slug, visibility) {
+  const { error } = await supabase
+    .from('paintings').update({ visibility }).eq('slug', slug)
+  if (error) throw error
+}
+
 // ── Artist profile ───────────────────────────────────────────
 export async function getArtistProfile() {
   const { data, error } = await supabase
@@ -125,6 +162,17 @@ export async function getArtistProfile() {
     .single()
   if (error) throw error
   return data
+}
+
+// ── Painting images ──────────────────────────────────────────
+export async function getPaintingImages(paintingSlug) {
+  const { data, error } = await supabase
+    .from('painting_images')
+    .select('id, image_url, version_label, uploaded_at')
+    .eq('painting_slug', paintingSlug)
+    .order('uploaded_at', { ascending: true })
+  if (error) throw error
+  return data || []
 }
 
 // ── Studio state ─────────────────────────────────────────────
