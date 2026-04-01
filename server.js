@@ -36,9 +36,15 @@ app.post('/api/evaluate', async (req, res) => {
 
       if (statusCode === 200 && data.response) {
         const content = data.response
-        const firstLine = content.split('\n').find(l => l.trim()) || ''
-        const title = firstLine.replace(/^#+\s*/, '').trim()
         const wordCount = content.split(/\s+/).filter(Boolean).length
+        const headingLine = content.split('\n').find(l => l.trimStart().startsWith('#'))
+        const extractedTitle = headingLine
+          ? headingLine.replace(/^#+\s*/, '').trim()
+          : content.replace(/\n+/g, ' ').trim().slice(0, 60)
+        const { data: pRow } = await supabase.from('paintings').select('title').eq('slug', paintingSlug).single()
+        const title = pRow?.title
+          ? `${pRow.title} — Process Journal`
+          : extractedTitle
 
         const { data: post, error } = await supabase
           .from('blog_posts')
@@ -67,7 +73,7 @@ app.post('/api/evaluate', async (req, res) => {
     await handler(req, res)
   } catch (err) {
     console.error('[route error]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: err.message, stack: err.stack })
   }
 })
 
@@ -123,6 +129,32 @@ app.post('/api/add-painting-image', async (req, res) => {
     console.error('[add-painting-image]', err.message)
     res.status(500).json({ error: err.message })
   }
+})
+
+// ── Update blog post (content + status) ──────────────────────
+app.post('/api/update-blog-post', async (req, res) => {
+  const { id, full_text, status } = req.body || {}
+  if (!id) return res.status(400).json({ error: 'id required' })
+  const updates = {}
+  if (full_text !== undefined) {
+    updates.full_text  = full_text
+    updates.word_count = full_text.split(/\s+/).filter(Boolean).length
+    const firstLine    = full_text.split('\n').find(l => l.trim()) || ''
+    updates.title      = firstLine.replace(/^#+\s*/, '').trim() || null
+  }
+  if (status !== undefined) updates.status = status
+  const { error } = await supabase.from('blog_posts').update(updates).eq('id', id)
+  if (error) return res.status(500).json({ error: error.message })
+  res.json({ ok: true })
+})
+
+// ── Update painting status ────────────────────────────────────
+app.post('/api/set-painting-status', async (req, res) => {
+  const { slug, status } = req.body || {}
+  if (!slug || !status) return res.status(400).json({ error: 'slug and status required' })
+  const { error } = await supabase.from('paintings').update({ status }).eq('slug', slug)
+  if (error) return res.status(500).json({ error: error.message })
+  res.json({ ok: true, slug, status })
 })
 
 const PORT = process.env.PORT || 3001

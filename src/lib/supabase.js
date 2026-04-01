@@ -77,7 +77,7 @@ export async function getTopInspiration() {
 export async function getBlogPosts() {
   const { data, error } = await supabase
     .from('blog_posts')
-    .select('id, title, subtitle, status, published_date, painting_slug, word_count')
+    .select('id, title, status, painting_slug, word_count, full_text, created_at')
     .order('created_at', { ascending: false })
   if (error) throw error
   return data
@@ -96,13 +96,12 @@ export async function getRecentDialogue(paintingSlug, limit = 6) {
 }
 
 export async function saveDialogue(userId, paintingSlug, userMsg, companionMsg) {
+  const today = new Date().toISOString().split('T')[0]
   const { error } = await supabase
     .from('companion_conversations')
     .insert([
-      { user_id: userId, painting_slug: paintingSlug,
-        role: 'user', message: userMsg },
-      { user_id: userId, painting_slug: paintingSlug,
-        role: 'companion', message: companionMsg }
+      { painting_slug: paintingSlug, role: 'user', message: userMsg, session_date: today },
+      { painting_slug: paintingSlug, role: 'companion', message: companionMsg, session_date: today }
     ])
   if (error) throw error
 }

@@ -26,7 +26,7 @@ const anthropic = new Anthropic({
 // This saves 200-400 tokens per call vs fetching everything.
 const CALL_CONFIG = {
   evaluate_painting: {
-    fetch: ['wip_sessions', 'studio_state', 'painting_subject', 'recent_paintings'],
+    fetch: ['painting_history', 'wip_sessions', 'studio_state', 'painting_subject', 'recent_paintings'],
     max_tokens: 1500,
     include_image: true
   },
@@ -81,6 +81,24 @@ async function fetchDynamicContext(callType, userId, paintingSlug) {
       .order('updated_at', { ascending: false })
       .limit(5)
     context.recentPaintings = data || []
+  }
+
+  if (config.fetch.includes('painting_history') && paintingSlug) {
+    const { data: convData } = await supabase
+      .from('companion_conversations')
+      .select('message, session_date')
+      .eq('painting_slug', paintingSlug)
+      .eq('role', 'companion')
+      .order('created_at', { ascending: false })
+      .limit(3)
+    context.previousEvaluations = (convData || []).reverse()
+
+    const { data: sessData } = await supabase
+      .from('painting_sessions')
+      .select('version, score_overall, artist_note, session_date')
+      .eq('painting_slug', paintingSlug)
+      .order('version', { ascending: true })
+    context.allSessions = sessData || []
   }
 
   if (config.fetch.includes('wip_sessions') && paintingSlug) {
@@ -190,7 +208,28 @@ async function fetchDynamicContext(callType, userId, paintingSlug) {
 
 // ── Build dynamic context string ─────────────────────────────
 function buildDynamicContextString(context, callType) {
-  const lines = ['── CURRENT ARTIST STATE ────────────────────────────────']
+  const lines = []
+
+  // Painting history block — prepended for evaluate_painting
+  if (context.previousEvaluations !== undefined || context.allSessions !== undefined) {
+    lines.push('PAINTING HISTORY:')
+    if (context.previousEvaluations?.length) {
+      const last = context.previousEvaluations[context.previousEvaluations.length - 1]
+      lines.push(`Previous evaluations: ${last.message.slice(0, 300)}`)
+    }
+    if (context.allSessions?.length) {
+      const sessionStr = context.allSessions
+        .map(s => `v${s.version}=${s.score_overall ?? '?'}${s.artist_note ? ` (${s.artist_note.slice(0, 60)})` : ''}`)
+        .join(', ')
+      lines.push(`Session history: ${sessionStr}`)
+    }
+    if (context.paintingSubject?.subject_note) {
+      lines.push(`Artist confirmed meaning: ${context.paintingSubject.subject_note}`)
+    }
+    lines.push('')
+  }
+
+  lines.push('── CURRENT ARTIST STATE ────────────────────────────────')
 
   if (context.recentPaintings?.length) {
     lines.push('Recent paintings: ' +
@@ -309,7 +348,7 @@ export default async function handler(req, res) {
         source: { type: 'base64', media_type: 'image/jpeg', data: processedImage }
       })
     }
-    userContent.push({ type: 'text', text: userMessage })
+    userContent.push({ type: 'text', text: userMessage || 'Please evaluate this painting.' })
 
     // STEP 5: Call Claude API
     // Static prompt is cached — 90% cost reduction on those tokens
@@ -366,6 +405,6 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('ArtMind API error:', error)
-    return res.status(500).json({ error: 'Evaluation failed' })
+    return res.status(500).json({ error: error.message, stack: error.stack })
   }
 }

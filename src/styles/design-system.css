@@ -507,7 +507,9 @@ body {
 /* ── BlogScreen ── */
 .blog-screen {
   min-height: 100vh;
-  padding-bottom: var(--space-8);
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 32px 32px 100px;
 }
 .blog-header {
   padding: var(--space-6) var(--space-5) var(--space-4);
@@ -544,6 +546,8 @@ body {
 }
 .blog-status--published { color: var(--teal); border-color: var(--teal); }
 .blog-status--draft     { color: var(--mid);  border-color: var(--stone); }
+.blog-post-card { transition: border-color 0.15s; }
+.blog-post-card:hover   { border-color: var(--mid) !important; }
 .blog-generate {
   padding: var(--space-5);
   border-bottom: 0.5px solid var(--border);
@@ -698,6 +702,15 @@ body {
   color: var(--text-muted);
   margin-bottom: var(--space-1);
 }
+
+/* ── Companion response markdown ── */
+.companion-response h2 { font-family: var(--font-serif); font-size: 1.1rem; font-weight: 400; color: var(--dark); margin: 24px 0 8px; }
+.companion-response p { font-family: var(--font-serif); font-size: 1rem; line-height: 1.8; color: var(--dark); margin: 0 0 12px; font-style: italic; }
+.companion-response table { width: 100%; border-collapse: collapse; margin: 16px 0; font-family: var(--font-sans); font-size: 0.875rem; }
+.companion-response th { text-align: left; padding: 6px 12px; border-bottom: 1px solid var(--stone); color: var(--mid); font-weight: 500; }
+.companion-response td { padding: 8px 12px; border-bottom: 0.5px solid var(--stone); color: var(--dark); vertical-align: top; }
+.companion-response strong { font-weight: 600; font-style: normal; color: var(--dark); }
+.companion-response hr { border: none; border-top: 0.5px solid var(--stone); margin: 24px 0; }
 
 /* ── ConversationThread ── */
 .conv-thread {

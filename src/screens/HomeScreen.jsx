@@ -35,7 +35,7 @@ export default function HomeScreen({ onPaintingClick }) {
   const [blogPosts, setBlogPosts]   = useState([])
 
   useEffect(() => {
-    getPaintings()
+    getPaintings(null, { type: 'artist_work' })
       .then(setPaintings)
       .catch(() => {})
     getTopInspiration()
@@ -47,8 +47,8 @@ export default function HomeScreen({ onPaintingClick }) {
   }, [])
 
   const blogSlugs  = new Set(blogPosts.map(b => b.painting_slug).filter(Boolean))
-  const wip        = paintings.filter(p => p.type === 'artist_work')
-  const dueReview  = paintings.filter(p => p.type === 'artist_work' && !blogSlugs.has(p.slug))
+  const wip        = paintings.filter(p => p.status === 'wip')
+  const dueReview  = paintings.filter(p => p.status === 'finished' && !blogSlugs.has(p.slug))
   const recentBlogs = blogPosts.slice(0, 3)
 
   return (

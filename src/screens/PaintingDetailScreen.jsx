@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import '../styles/design-system.css'
-import { getPainting, getSessions, getPaintingImages, getAllConversations, addSessionNote, setPaintingStatus } from '../lib/supabase'
+import { getPainting, getSessions, getPaintingImages, getAllConversations, addSessionNote } from '../lib/supabase'
 import PaintingJournalEntry from '../components/PaintingJournalEntry'
 import ConversationThread from '../components/ConversationThread'
 
@@ -42,8 +42,14 @@ export default function PaintingDetailScreen({ slug, onBack, onTalkToCompanion }
 
   async function toggleStatus() {
     const next = status === 'wip' ? 'finished' : 'wip'
-    await setPaintingStatus(slug, next).catch(() => {})
-    setStatus(next)
+    try {
+      const res = await fetch('http://localhost:3001/api/set-painting-status', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug, status: next }),
+      })
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error) }
+      setStatus(next)
+    } catch (e) { alert(e.message) }
   }
 
   async function uploadImage(base64, vLabel) {

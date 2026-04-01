@@ -4,35 +4,36 @@ import { getPaintings } from '../lib/supabase'
 import PaintingCard from '../components/PaintingCard'
 
 const FILTERS = [
-  { label: 'All',          value: null           },
-  { label: 'My Work',      value: 'artist_work'  },
-  { label: 'Masterpieces', value: 'masterpiece'  },
-  { label: 'WIP',          value: 'wip'          },
+  { label: 'All',          type: null,           status: null       },
+  { label: 'My Work',      type: 'artist_work',  status: 'finished' },
+  { label: 'Masterpieces', type: 'masterpiece',  status: null       },
+  { label: 'WIP',          type: 'artist_work',  status: 'wip'      },
 ]
 
 export default function GalleryScreen({ onPaintingClick }) {
   const [all, setAll] = useState([])
-  const [active, setActive] = useState(null)
+  const [active, setActive] = useState(0)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    getPaintings()
+    const f = FILTERS[active]
+    getPaintings(null, { type: f.type, status: f.status })
       .then(setAll)
       .catch(err => setError(err.message))
-  }, [])
+  }, [active])
 
-  const visible = active ? all.filter(p => p.type === active) : all
+  const visible = all
 
   return (
     <div className="gallery-screen">
 
       <div className="gallery-bar">
         <div className="gallery-filters">
-          {FILTERS.map(f => (
+          {FILTERS.map((f, i) => (
             <button
               key={f.label}
-              className={`btn gallery-filter-btn${active === f.value ? ' gallery-filter-btn--active' : ''}`}
-              onClick={() => setActive(f.value)}
+              className={`btn gallery-filter-btn${active === i ? ' gallery-filter-btn--active' : ''}`}
+              onClick={() => setActive(i)}
             >
               {f.label}
             </button>

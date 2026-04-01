@@ -26,9 +26,9 @@ export default function App() {
     <div className="app-shell">
       <main className="app-main">
         {screen === 'home'    && <HomeScreen    onPaintingClick={openPainting} />}
-        {screen === 'upload'  && <UploadScreen  />}
+        {screen === 'upload'  && <UploadScreen onPaintingClick={openPainting} />}
         {screen === 'gallery' && <GalleryScreen onPaintingClick={openPainting} />}
-        {screen === 'blog'    && <BlogScreen />}
+        {screen === 'blog'    && <BlogScreen onPaintingClick={openPainting} />}
         {screen === 'profile' && <ProfileScreen onPaintingClick={openPainting} />}
         {screen === 'detail'  && <PaintingDetailScreen slug={selectedSlug} onBack={goBack} />}
       </main>
