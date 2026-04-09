@@ -113,6 +113,7 @@ body {
   font-size: 0.875rem;
   font-weight: 500;
   padding: 10px 20px;
+  min-height: 44px;
   border-radius: var(--radius-sm);
   border: 0.5px solid var(--border);
   background: transparent;
@@ -163,15 +164,16 @@ body {
 
 /* ── PaintingCard ── */
 .painting-card {
-  background: var(--surface);
-  border: 0.5px solid var(--border);
-  border-radius: var(--radius-md);
+  background: var(--white);
+  border: none;
+  border-radius: 2px;
+  box-shadow: 0 4px 24px rgba(30,30,28,0.13);
   overflow: hidden;
   cursor: pointer;
   transition: border-color var(--transition), transform var(--transition);
 }
 .painting-card:hover {
-  border-color: var(--mid);
+  box-shadow: 0 8px 36px rgba(30,30,28,0.18);
   transform: translateY(-2px);
 }
 .painting-card__image {
@@ -179,6 +181,8 @@ body {
   aspect-ratio: 4 / 3;
   overflow: hidden;
   background: var(--stone);
+  padding: 8px 8px 0;
+  box-sizing: border-box;
 }
 .painting-card__image img {
   width: 100%;
@@ -259,6 +263,7 @@ body {
 }
 .gallery-filter-btn {
   padding: 6px 14px;
+  min-height: 44px;
 }
 .gallery-filter-btn--active {
   background: var(--warm);
@@ -278,9 +283,15 @@ body {
   gap: var(--space-5);
   padding: var(--space-6);
 }
+/* Use inside sections that already have padding */
+.gallery-grid--flush {
+  padding: 0;
+  gap: var(--space-4);
+}
 @media (max-width: 560px) {
   .gallery-bar { flex-wrap: wrap; }
   .gallery-grid { padding: var(--space-5); gap: var(--space-4); }
+  .gallery-grid--flush { padding: 0; gap: var(--space-3); }
 }
 
 /* ── App shell ── */
@@ -327,11 +338,14 @@ body {
 /* ── UploadScreen ── */
 .upload-screen {
   padding: var(--space-6);
-  max-width: 560px;
+  max-width: 960px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
+}
+.upload-form {
+  max-width: 560px;
 }
 .upload-area {
   width: 100%;
@@ -446,6 +460,7 @@ body {
   border: 0.5px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 6px 12px;
+  min-height: 44px;
   font-family: var(--font-sans);
   font-size: 0.875rem;
   cursor: pointer;
@@ -703,9 +718,13 @@ body {
   margin-bottom: var(--space-1);
 }
 
+/* ── Score sparkline ── */
+.score-sparkline { display: flex; flex-direction: column; gap: var(--space-1); }
+.score-sparkline__label { font-family: var(--font-sans); font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
 /* ── Companion response markdown ── */
 .companion-response h2 { font-family: var(--font-serif); font-size: 1.1rem; font-weight: 400; color: var(--dark); margin: 24px 0 8px; }
-.companion-response p { font-family: var(--font-serif); font-size: 1rem; line-height: 1.8; color: var(--dark); margin: 0 0 12px; font-style: italic; }
+.companion-response p { font-family: var(--font-serif); font-size: 1rem; line-height: 1.8; color: var(--dark); margin: 0 0 12px; }
 .companion-response table { width: 100%; border-collapse: collapse; margin: 16px 0; font-family: var(--font-sans); font-size: 0.875rem; }
 .companion-response th { text-align: left; padding: 6px 12px; border-bottom: 1px solid var(--stone); color: var(--mid); font-weight: 500; }
 .companion-response td { padding: 8px 12px; border-bottom: 0.5px solid var(--stone); color: var(--dark); vertical-align: top; }

@@ -1,121 +1,162 @@
 import { useEffect, useState } from 'react'
 import '../styles/design-system.css'
-import { getPaintings, getTopInspiration, getBlogPosts } from '../lib/supabase'
+import { getPaintings, getInspirations, getBlogPosts, getLatestStudioLog, SERVER } from '../lib/supabase'
+import { useSpeech, SpeakButton } from '../lib/useVoiceInput.jsx'
+import PaintingCard from '../components/PaintingCard'
+import InfluencesSection from '../components/InfluencesSection'
+import WipImageManager from '../components/WipImageManager'
+import HomeBlogRow from '../components/HomeBlogRow'
+import StudioLogEntry from '../components/StudioLogEntry'
+import StyleDNARadar from '../components/StyleDNARadar'
 
-const MORNING_MESSAGE = "Memory Lane has been at 90 for four days. The figure's gesture is still the open question."
-
-function daysSince(dateStr) {
-  if (!dateStr) return null
-  const diff = Date.now() - new Date(dateStr).getTime()
-  return Math.floor(diff / 86400000)
-}
-
-function ScrollCard({ painting, onClick }) {
-  const days = daysSince(painting.evaluated_at)
-  const thumb = painting.image_url
-    ? painting.image_url.replace('full.jpg', 'thumb.jpg')
-    : painting.thumbnail_b64 ? `data:image/jpeg;base64,${painting.thumbnail_b64}` : null
+function SectionLabel({ children }) {
   return (
-    <div style={{ width: 200, flexShrink: 0, cursor: 'pointer' }} onClick={() => onClick?.(painting)}>
-      {thumb
-        ? <img src={thumb} alt={painting.title} style={{ width: '100%', height: 150, objectFit: 'cover', borderRadius: 8, display: 'block' }} />
-        : <div style={{ width: '100%', height: 150, borderRadius: 8, background: 'var(--stone)' }} />
-      }
-      <p style={{ fontWeight: 500, fontSize: 14, marginTop: 8 }}>{painting.title}</p>
-      <p style={{ color: 'var(--warm)', fontSize: 12, marginTop: 2 }}>
-        {painting.score_overall ?? '—'}{days !== null ? `  ·  ${days}d ago` : ''}
-      </p>
-    </div>
+    <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.65rem', fontWeight: 600,
+      letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--warm)',
+      marginBottom: 'var(--space-3)' }}>
+      {children}
+    </p>
   )
 }
 
-export default function HomeScreen({ onPaintingClick }) {
-  const [paintings, setPaintings]   = useState([])
-  const [inspiration, setInspiration] = useState(null)
-  const [blogPosts, setBlogPosts]   = useState([])
+export default function HomeScreen({ userId, onPaintingClick, onNavigate, onSignOut }) {
+  const [paintings,        setPaintings]        = useState([])
+  const [inspirations,     setInspirations]     = useState([])
+  const [blogPosts,        setBlogPosts]        = useState([])
+  const [managingPainting, setManagingPainting] = useState(null)
+  const [logOpen,          setLogOpen]          = useState(false)
+  const [latestLog,        setLatestLog]        = useState(null)
+  const { speaking, speak, stop } = useSpeech()
 
   useEffect(() => {
-    getPaintings(null, { type: 'artist_work' })
-      .then(setPaintings)
-      .catch(() => {})
-    getTopInspiration()
-      .then(setInspiration)
-      .catch(() => {})
-    getBlogPosts()
-      .then(setBlogPosts)
-      .catch(() => {})
+    getPaintings(userId, { type: 'artist_work' }).then(setPaintings).catch(() => {})
+    getInspirations(userId).then(setInspirations).catch(() => {})
+    getBlogPosts(userId).then(setBlogPosts).catch(() => {})
+    if (userId) getLatestStudioLog(userId).then(setLatestLog).catch(() => {})
   }, [])
 
-  const blogSlugs  = new Set(blogPosts.map(b => b.painting_slug).filter(Boolean))
-  const wip        = paintings.filter(p => p.status === 'wip')
-  const dueReview  = paintings.filter(p => p.status === 'finished' && !blogSlugs.has(p.slug))
+  const paintingMap = Object.fromEntries(paintings.map(p => [p.slug, p]))
+  const blogSlugs   = new Set(blogPosts.map(b => b.painting_slug).filter(Boolean))
+  const wip         = paintings.filter(p => p.status === 'wip')
+  const finished    = paintings.filter(p => p.status === 'finished')
+  const dueReview   = finished.filter(p => !blogSlugs.has(p.slug))
   const recentBlogs = blogPosts.slice(0, 3)
+  const topInfluence = inspirations[0]
 
   return (
     <div className="home-screen">
 
-      {/* 1 — Morning message */}
+      {/* 1 — Companion greeting */}
       <header className="home-header">
-        <h1 className="t-display home-wordmark">Atelier</h1>
-        <div className="companion-message">
-          <p className="companion-text">{MORNING_MESSAGE}</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <h1 className="t-display home-wordmark">Atelier</h1>
+          <button className="btn" style={{ fontSize: 11, marginTop: 4 }} onClick={() => setLogOpen(true)}>
+            Log session +
+          </button>
         </div>
+        <div className="companion-message" style={{ borderLeft: '2px solid var(--warm)', paddingLeft: 16, marginTop: 16 }}>
+          <p className="companion-text" style={{ fontStyle: 'italic', color: 'var(--text-muted)', lineHeight: 1.7 }}>
+            Your studio is ready. What are you working on today?
+          </p>
+        </div>
+        {latestLog && (
+          <div style={{ marginTop: 12, padding: '8px 12px', background: 'var(--surface)', borderRadius: 'var(--radius-sm)',
+            border: '0.5px solid var(--border)', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--warm)', textTransform: 'capitalize', whiteSpace: 'nowrap', marginTop: 1 }}>{latestLog.state}</span>
+            <p className="t-micro" style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>{latestLog.note?.slice(0, 120)}{latestLog.note?.length > 120 ? '…' : ''}</p>
+          </div>
+        )}
       </header>
 
-      {/* 2 — WIP paintings */}
+      {logOpen && (
+        <StudioLogEntry
+          userId={userId}
+          wipPaintings={wip}
+          onSaved={entry => setLatestLog({ state: entry.mood, note: entry.note, session_date: new Date().toISOString().split('T')[0] })}
+          onClose={() => setLogOpen(false)}
+        />
+      )}
+
+      {/* 2 — What you're working on */}
       <section className="home-section">
-        <p className="t-micro home-section-label">In progress</p>
+        <SectionLabel>What you're working on</SectionLabel>
         {wip.length === 0
-          ? <p className="t-small" style={{ color: 'var(--text-muted)' }}>No paintings in progress.</p>
-          : <div style={{ display: 'flex', flexDirection: 'row', gap: 16, overflowX: 'auto', paddingBottom: 8 }}>
-              {wip.map(p => <ScrollCard key={p.slug} painting={p} onClick={onPaintingClick} />)}
+          ? <div style={{ padding: '12px 0' }}>
+              <p className="t-small" style={{ color: 'var(--text-muted)', marginBottom: 12, fontStyle: 'italic' }}>
+                No paintings in progress. Start something.
+              </p>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button className="btn btn-warm" style={{ fontSize: 13 }} onClick={() => onNavigate?.('upload')}>Start evaluating →</button>
+                <button className="btn" style={{ fontSize: 13 }} onClick={() => onNavigate?.('gallery')}>Explore masterpieces →</button>
+              </div>
+            </div>
+          : <div className="gallery-grid gallery-grid--flush">
+              {wip.map(p => (
+                <PaintingCard key={p.slug} painting={p}
+                  onClick={() => onPaintingClick?.(p)}
+                  onCameraClick={() => setManagingPainting(p)} />
+              ))}
             </div>
         }
       </section>
 
-      {/* 3 — Philosophical excerpt */}
-      {inspiration && (
+      {/* 3 — What you've made */}
+      {finished.length > 0 && (
         <section className="home-section">
-          <p className="t-micro home-section-label">Current influence</p>
-          <div className="card-dark">
-            <p className="t-small" style={{ fontWeight: 500, color: 'var(--light)' }}>{inspiration.title}</p>
-            <p className="t-micro" style={{ color: 'var(--mid)', margin: 'var(--space-1) 0 var(--space-3)' }}>{inspiration.creator}</p>
-            {inspiration.influence_note && (
-              <p className="t-small" style={{ color: 'var(--stone)', lineHeight: 1.6 }}>{inspiration.influence_note}</p>
-            )}
+          <SectionLabel>What you've made</SectionLabel>
+          <div className="gallery-grid gallery-grid--flush">
+            {finished.map(p => <PaintingCard key={p.slug} painting={p} onClick={() => onPaintingClick?.(p)} />)}
           </div>
         </section>
       )}
 
-      {/* 4 — Due for review */}
+      {/* 3b — Style DNA */}
+      {paintings.filter(p => p.score_overall != null).length >= 2 && (
+        <section className="home-section">
+          <StyleDNARadar paintings={paintings} />
+        </section>
+      )}
+
+      {/* 4 — What's shaping your practice */}
+      {inspirations.length > 0 && (
+        <section className="home-section">
+          <SectionLabel>What's shaping your practice</SectionLabel>
+          <InfluencesSection inspirations={inspirations} />
+        </section>
+      )}
+
+      {/* 5 — Ready to write about */}
       {dueReview.length > 0 && (
         <section className="home-section">
-          <p className="t-micro home-section-label">No blog post yet</p>
-          <div style={{ display: 'flex', flexDirection: 'row', gap: 16, overflowX: 'auto', paddingBottom: 8 }}>
-            {dueReview.map(p => <ScrollCard key={p.slug} painting={p} onClick={onPaintingClick} />)}
+          <SectionLabel>Ready to write about</SectionLabel>
+          <div className="gallery-grid gallery-grid--flush">
+            {dueReview.map(p => <PaintingCard key={p.slug} painting={p} onClick={() => onPaintingClick?.(p)} />)}
           </div>
         </section>
       )}
 
-      {/* 5 — Recent blog drafts */}
+      {/* 6 — Your process, documented */}
       {recentBlogs.length > 0 && (
         <section className="home-section">
-          <p className="t-micro home-section-label">Recent writing</p>
+          <SectionLabel>Your process, documented</SectionLabel>
           {recentBlogs.map(b => (
-            <div key={b.id} className="home-blog-row">
-              <div>
-                <p className="t-small" style={{ fontWeight: 500 }}>{b.title || 'Untitled'}</p>
-                {b.painting_slug && <p className="t-micro" style={{ color: 'var(--text-muted)' }}>{b.painting_slug}</p>}
-              </div>
-              <div style={{ display: 'flex', gap: 'var(--space-3)', alignItems: 'center', flexShrink: 0 }}>
-                {b.word_count && <span className="t-micro" style={{ color: 'var(--text-muted)' }}>{b.word_count}w</span>}
-                <span className={`blog-status blog-status--${b.status}`}>{b.status}</span>
-              </div>
-            </div>
+            <HomeBlogRow key={b.id} post={b}
+              painting={paintingMap[b.painting_slug] || null}
+              onClick={() => onNavigate?.('blog')} />
           ))}
         </section>
       )}
 
+      {managingPainting && (
+        <WipImageManager
+          painting={managingPainting}
+          onClose={() => setManagingPainting(null)}
+          onMainImageChanged={(slug, imageUrl) => {
+            setPaintings(prev => prev.map(p => p.slug === slug ? { ...p, image_url: imageUrl } : p))
+            setManagingPainting(null)
+          }}
+        />
+      )}
     </div>
   )
 }

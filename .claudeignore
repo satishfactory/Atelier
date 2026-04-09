@@ -1,0 +1,10 @@
+node_modules/
+.git/
+build/
+dist/
+painting-images/
+output/
+scripts/
+private/
+*.log
+*.lock

@@ -1,20 +1,17 @@
 import { useEffect, useState } from 'react'
 import '../styles/design-system.css'
-import { getBlogPosts, getPaintings } from '../lib/supabase'
+import { getBlogPosts, getPaintings, friendlyError, SERVER } from '../lib/supabase'
 import BlogPostCard from '../components/BlogPostCard'
 
-const API     = 'http://localhost:3001/api/evaluate'
-const USER_ID = '4f2f0493-f044-481d-a332-0fb1b9fe1c1d'
-
-export default function BlogScreen({ onPaintingClick }) {
+export default function BlogScreen({ userId, onPaintingClick }) {
   const [posts, setPosts]         = useState([])
   const [paintings, setPaintings] = useState([])
   const [slug, setSlug]           = useState('')
   const [generating, setGenerating] = useState(false)
 
   useEffect(() => {
-    getBlogPosts().then(setPosts).catch(() => {})
-    getPaintings(null, { type: 'artist_work' }).then(ps => {
+    getBlogPosts(userId).then(setPosts).catch(() => {})
+    getPaintings(userId, { type: 'artist_work' }).then(ps => {
       setPaintings(ps)
       if (ps.length) setSlug(ps[0].slug)
     }).catch(() => {})
@@ -29,29 +26,34 @@ export default function BlogScreen({ onPaintingClick }) {
     setGenerating(true)
     try {
       const painting = paintings.find(p => p.slug === slug)
-      const res = await fetch(API, {
+      const res = await fetch(`${SERVER}/api/evaluate`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          callType: 'generate_blog', paintingSlug: slug, userId: USER_ID,
+          callType: 'generate_blog', paintingSlug: slug, userId,
           paintingImage: painting?.thumbnail_b64 || null,
           userMessage: "Write a process journal entry about this painting — not marketing copy, not a caption, but a record of what was discovered, what was decided, and what remains unresolved. In the artist's voice. For the artist's archive.",
         }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
-      getBlogPosts().then(setPosts).catch(() => {})
-    } catch (e) { alert(e.message) }
+      getBlogPosts(userId).then(setPosts).catch(() => {})
+    } catch (e) { alert(friendlyError(e.message)) }
     finally { setGenerating(false) }
   }
 
   return (
     <div className="blog-screen">
 
-      {/* 1 EXISTING POSTS */}
+      {/* 1 YOUR WRITING */}
       <section className="home-section">
         <p className="t-micro home-section-label">Your writing</p>
         {posts.length === 0
-          ? <p className="t-small" style={{ color: 'var(--text-muted)' }}>No posts yet.</p>
+          ? (
+            <div style={{ padding: '20px 0' }}>
+              <p className="t-small" style={{ color: 'var(--text-muted)', marginBottom: 8 }}>No posts yet.</p>
+              <p className="t-micro" style={{ color: 'var(--text-muted)' }}>Generate your first process journal below ↓</p>
+            </div>
+          )
           : posts.map(p => (
               <BlogPostCard key={p.id} post={p} onUpdate={updatePost}
                 painting={paintings.find(x => x.slug === p.painting_slug) || null}
@@ -63,6 +65,9 @@ export default function BlogScreen({ onPaintingClick }) {
       {/* 2 GENERATE NEW POST */}
       <section className="home-section">
         <p className="t-micro home-section-label">Generate new post</p>
+        <p className="t-small" style={{ color: 'var(--text-muted)', marginBottom: 12 }}>
+          Writes a process journal entry in your voice — drawing on the painting's evaluation history, companion conversations, and your notes. Saved as a draft you can edit before publishing.
+        </p>
         <select value={slug} onChange={e => setSlug(e.target.value)}
           style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)',
             border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)',

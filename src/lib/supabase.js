@@ -4,6 +4,15 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+export const SERVER = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`
+
+export function friendlyError(msg) {
+  if (!msg || msg === 'Failed to fetch') return 'Could not reach the server. Make sure it is running on port 3001.'
+  if (/rate.?limit/i.test(msg)) return 'Rate limit reached. Please wait a moment and try again.'
+  if (/image/i.test(msg)) return 'Problem with the image. Try a smaller or different file.'
+  if (/timeout/i.test(msg)) return 'The request timed out. Please try again.'
+  return msg
+}
 
 // ── Paintings ────────────────────────────────────────────────
 export async function getPaintings(userId, filters = {}) {
@@ -17,6 +26,7 @@ export async function getPaintings(userId, filters = {}) {
       score_narrative, tags
     `)
 
+  if (userId)         query = query.eq('user_id', userId)
   if (filters.type)   query = query.eq('type', filters.type)
   if (filters.status) query = query.eq('status', filters.status)
 
@@ -47,13 +57,14 @@ export async function getSessions(paintingSlug) {
 }
 
 // ── Inspirations ─────────────────────────────────────────────
-export async function getInspirations(filters = {}) {
+export async function getInspirations(userId, filters = {}) {
   let query = supabase
     .from('inspirations')
     .select('*')
     .eq('active', true)
     .order('intensity', { ascending: false })
 
+  if (userId)       query = query.eq('user_id', userId)
   if (filters.type) query = query.eq('type', filters.type)
 
   const { data, error } = await query
@@ -61,24 +72,27 @@ export async function getInspirations(filters = {}) {
   return data
 }
 
-export async function getTopInspiration() {
-  const { data, error } = await supabase
+export async function getTopInspiration(userId) {
+  let query = supabase
     .from('inspirations')
     .select('title, creator, influence_note, intensity')
     .eq('active', true)
     .order('intensity', { ascending: false })
     .limit(1)
-    .single()
+  if (userId) query = query.eq('user_id', userId)
+  const { data, error } = await query.single()
   if (error) throw error
   return data
 }
 
 // ── Blog posts ───────────────────────────────────────────────
-export async function getBlogPosts() {
-  const { data, error } = await supabase
+export async function getBlogPosts(userId) {
+  let query = supabase
     .from('blog_posts')
     .select('id, title, status, painting_slug, word_count, full_text, created_at')
     .order('created_at', { ascending: false })
+  if (userId) query = query.eq('user_id', userId)
+  const { data, error } = await query
   if (error) throw error
   return data
 }
@@ -129,7 +143,7 @@ export async function getConversations(paintingSlug, limit = 10) {
 }
 
 // ── Add session note ─────────────────────────────────────────
-export async function addSessionNote(paintingSlug, artistNote) {
+export async function addSessionNote(paintingSlug, artistNote, userId) {
   const { data: existing } = await supabase
     .from('painting_sessions')
     .select('version')
@@ -137,10 +151,10 @@ export async function addSessionNote(paintingSlug, artistNote) {
     .order('version', { ascending: false })
     .limit(1)
   const nextVersion = ((existing?.[0]?.version) ?? 0) + 1
-  const { error } = await supabase
-    .from('painting_sessions')
-    .insert({ painting_slug: paintingSlug, version: nextVersion,
-              artist_note: artistNote, session_date: new Date().toISOString().split('T')[0] })
+  const row = { painting_slug: paintingSlug, version: nextVersion,
+                artist_note: artistNote, session_date: new Date().toISOString().split('T')[0] }
+  if (userId) row.user_id = userId
+  const { error } = await supabase.from('painting_sessions').insert(row)
   if (error) throw error
   return nextVersion
 }
@@ -182,15 +196,34 @@ export async function getCompanionJournal(paintingSlug) {
   return data || []
 }
 
-// ── Artist profile ───────────────────────────────────────────
-export async function getArtistProfile() {
+// ── Published blog posts for a painting ─────────────────────
+export async function getBlogPostsForPainting(paintingSlug) {
   const { data, error } = await supabase
-    .from('artist_profiles')
-    .select('*')
-    .limit(1)
-    .single()
+    .from('blog_posts')
+    .select('id, title, full_text, word_count, created_at, status')
+    .eq('painting_slug', paintingSlug)
+    .eq('status', 'published')
+    .order('created_at', { ascending: false })
   if (error) throw error
-  return data
+  return data || []
+}
+
+// ── Artist profile ───────────────────────────────────────────
+export async function getArtistProfile(userId) {
+  const query = userId
+    ? supabase.from('artist_profiles').select('*').eq('user_id', userId).maybeSingle()
+    : supabase.from('artist_profiles').select('*').limit(1).maybeSingle()
+  const { data, error } = await query
+  if (error) throw error
+  if (data) return data
+  // Auto-create profile for new users
+  if (userId) {
+    const { data: created, error: cErr } = await supabase
+      .from('artist_profiles').upsert({ user_id: userId, display_name: 'Artist' }, { onConflict: 'user_id', ignoreDuplicates: true }).select().maybeSingle()
+    if (cErr) throw cErr
+    return created
+  }
+  return null
 }
 
 // ── Painting images ──────────────────────────────────────────
@@ -219,5 +252,75 @@ export async function setStudioState(userId, paintingSlug, state, note = '') {
   const { error } = await supabase
     .from('studio_states')
     .insert({ user_id: userId, painting_slug: paintingSlug, state, note })
+  if (error) throw error
+}
+
+export async function saveStudioLog(userId, { painting_slug, mood, note }) {
+  const today = new Date().toISOString().split('T')[0]
+  const { error } = await supabase.from('studio_states').insert({
+    user_id: userId,
+    painting_slug: painting_slug || null,
+    state: mood,
+    note,
+    session_date: today,
+  })
+  if (error) throw error
+}
+
+export async function getLatestStudioLog(userId) {
+  const { data } = await supabase
+    .from('studio_states')
+    .select('state, note, session_date, painting_slug')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+  return data?.[0] || null
+}
+
+// ── Media sessions (audio/video) ─────────────────────────────
+export async function getMediaSessions(paintingSlug) {
+  const { data: sessions, error } = await supabase
+    .from('painting_sessions')
+    .select('id, session_type, transcript, session_summary, duration_secs, frame_count, recorded_at, artist_note')
+    .eq('painting_slug', paintingSlug)
+    .in('session_type', ['audio', 'video', 'audio_video'])
+    .order('recorded_at', { ascending: false })
+  if (error) throw error
+  if (!sessions?.length) return []
+
+  const ids = sessions.map(s => s.id)
+  const { data: frames } = await supabase
+    .from('session_frames')
+    .select('session_id, frame_index, frame_url, captured_at_sec')
+    .in('session_id', ids)
+    .order('frame_index')
+  const frameMap = {}
+  frames?.forEach(f => {
+    if (!frameMap[f.session_id]) frameMap[f.session_id] = []
+    frameMap[f.session_id].push(f)
+  })
+  return sessions.map(s => ({ ...s, frames: frameMap[s.id] || [] }))
+}
+
+export async function updateRollingSummary(slug, text) {
+  const { error } = await supabase.from('paintings').update({ rolling_summary: text }).eq('slug', slug)
+  if (error) throw error
+}
+
+// ── Auth ─────────────────────────────────────────────────────
+export async function signIn(email, password) {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+  if (error) throw error
+  return data
+}
+
+export async function signUp(email, password) {
+  const { data, error } = await supabase.auth.signUp({ email, password })
+  if (error) throw error
+  return data
+}
+
+export async function signOut() {
+  const { error } = await supabase.auth.signOut()
   if (error) throw error
 }

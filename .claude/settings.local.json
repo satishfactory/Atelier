@@ -3,7 +3,12 @@
     "allow": [
       "Bash(npm create:*)",
       "Bash(npx create-vite@latest . --template react --force)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "WebFetch(domain:satishfactory.com)",
+      "Bash(node:*)",
+      "Bash(python3:*)",
+      "Read(//Users/satishfactory.art/Projects/**)",
+      "Bash(tar --exclude='atelier/node_modules' --exclude='atelier/dist' --exclude='atelier/.vite' -czf \"atelier_backup_2026-04-02_v2.tar.gz\" atelier/)"
     ]
   }
 }

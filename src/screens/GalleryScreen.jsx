@@ -4,23 +4,24 @@ import { getPaintings } from '../lib/supabase'
 import PaintingCard from '../components/PaintingCard'
 
 const FILTERS = [
-  { label: 'All',          type: null,           status: null       },
-  { label: 'My Work',      type: 'artist_work',  status: 'finished' },
-  { label: 'Masterpieces', type: 'masterpiece',  status: null       },
-  { label: 'WIP',          type: 'artist_work',  status: 'wip'      },
+  { label: 'All',      type: null,          status: null  },
+  { label: 'Finished', type: 'artist_work', status: 'finished' },
+  { label: 'WIP',      type: 'artist_work', status: 'wip'      },
 ]
 
-export default function GalleryScreen({ onPaintingClick }) {
-  const [all, setAll] = useState([])
+export default function GalleryScreen({ userId, onPaintingClick, onNavigate }) {
+  const [all, setAll]       = useState([])
   const [active, setActive] = useState(0)
-  const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError]   = useState(null)
 
   useEffect(() => {
+    setLoading(true)
     const f = FILTERS[active]
-    getPaintings(null, { type: f.type, status: f.status })
-      .then(setAll)
-      .catch(err => setError(err.message))
-  }, [active])
+    getPaintings(userId, { type: f.type, status: f.status })
+      .then(data => { setAll(data); setLoading(false) })
+      .catch(err => { setError(err.message); setLoading(false) })
+  }, [active, userId])
 
   const visible = all
 
@@ -48,7 +49,7 @@ export default function GalleryScreen({ onPaintingClick }) {
         <p className="t-small" style={{ padding: 'var(--space-6)', color: 'var(--coral)' }}>{error}</p>
       )}
 
-      {!error && all.length === 0 && (
+      {!error && loading && (
         <div className="gallery-grid gallery-grid--skeleton">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="skeleton" style={{ aspectRatio: '4/3', borderRadius: 'var(--radius-md)' }} />
@@ -56,18 +57,26 @@ export default function GalleryScreen({ onPaintingClick }) {
         </div>
       )}
 
-      {visible.length > 0 && (
+      {!error && !loading && all.length === 0 && active === 0 && (
+        <div style={{ padding: '48px 24px', textAlign: 'center' }}>
+          <p className="t-small" style={{ color: 'var(--text-muted)', marginBottom: 16 }}>No paintings yet.</p>
+          <button className="btn btn-warm" style={{ fontSize: 13 }} onClick={() => onNavigate?.('upload')}>Upload your first painting →</button>
+        </div>
+      )}
+
+      {!error && !loading && all.length === 0 && active > 0 && (
+        <div style={{ padding: '48px 24px', textAlign: 'center' }}>
+          <p className="t-small" style={{ color: 'var(--text-muted)', marginBottom: 16 }}>No paintings in this category.</p>
+          <button className="btn" style={{ fontSize: 13 }} onClick={() => setActive(0)}>Show all →</button>
+        </div>
+      )}
+
+      {!loading && visible.length > 0 && (
         <div className="gallery-grid">
           {visible.map(p => (
             <PaintingCard key={p.slug} painting={p} onClick={() => onPaintingClick?.(p)} />
           ))}
         </div>
-      )}
-
-      {all.length > 0 && visible.length === 0 && (
-        <p className="t-small" style={{ padding: 'var(--space-6)', color: 'var(--text-muted)' }}>
-          No paintings in this category.
-        </p>
       )}
 
     </div>
