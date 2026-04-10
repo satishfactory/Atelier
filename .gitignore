@@ -25,3 +25,4 @@ dist-ssr
 
 # Bundled binaries (large — do not commit)
 bin/
+.vercel

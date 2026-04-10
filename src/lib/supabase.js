@@ -161,6 +161,12 @@ export async function addSessionNote(paintingSlug, artistNote, userId) {
   return nextVersion
 }
 
+// ── Update session fields ────────────────────────────────────
+export async function updateSessionFields(sessionId, fields) {
+  const { error } = await supabase.from('painting_sessions').update(fields).eq('id', sessionId)
+  if (error) throw error
+}
+
 // ── Toggle painting visibility ───────────────────────────────
 export async function setPaintingVisibility(slug, visibility) {
   const { error } = await supabase

@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import '../styles/design-system.css'
+import { updateSessionFields } from '../lib/supabase'
 import ScoreWheel from './ScoreWheel'
 import { useVoiceInput, MicButton } from '../lib/useVoiceInput.jsx'
 import SessionRecorder from './SessionRecorder'
@@ -28,6 +29,8 @@ export default function PaintingJournalEntry({ session, painting, images = [], o
   const [noteText, setNoteText]   = useState('')
   const [photoFile, setPhotoFile] = useState(null)
   const [saving, setSaving]       = useState(false)
+  const [fields, setFields] = useState({ what_changed: session.what_changed || '', what_to_do_next: session.what_to_do_next || '' })
+  async function saveField(key) { if (session.id) updateSessionFields(session.id, { [key]: fields[key] }) }
   const fileRef = useRef(null)
   const noteRef = useRef(null)
   const { listening, toggleVoice } = useVoiceInput()
@@ -106,6 +109,15 @@ export default function PaintingJournalEntry({ session, painting, images = [], o
         </div>
       )}
 
+      {/* What changed / What to do next */}
+      {[['WHAT CHANGED', 'what_changed'], ['WHAT TO DO NEXT', 'what_to_do_next']].map(([label, key]) => (
+        <div key={key} style={{ marginBottom: 10 }}>
+          <p className="t-micro" style={{ color:'var(--warm)', fontWeight:600, marginBottom:4, textTransform:'uppercase', letterSpacing:'0.07em' }}>{label}</p>
+          <textarea rows={2} value={fields[key]} onChange={e => setFields(f => ({ ...f, [key]: e.target.value }))} onBlur={() => saveField(key)}
+            placeholder="—" style={{ fontSize:12, width:'100%', boxSizing:'border-box', padding:'6px 8px', resize:'vertical',
+              border:'1px solid var(--border)', borderRadius:'var(--radius-sm)', background:'var(--surface)', color:'var(--text)' }} />
+        </div>
+      ))}
       {/* Add note / record session */}
       <button onClick={() => setOpen(o => !o)} className="btn" style={{ fontSize: 11, padding: '3px 10px' }}>
         {open ? 'Cancel' : '+ Add note or photo to this version'}
