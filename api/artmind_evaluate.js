@@ -31,7 +31,7 @@ const CALL_CONFIG = {
     include_image: true
   },
   companion_dialogue: {
-    fetch: ['recent_dialogue', 'current_painting', 'studio_state', 'painting_subject'],
+    fetch: ['recent_dialogue', 'current_painting', 'studio_state', 'painting_subject', 'companion_persona'],
     max_tokens: 800,
     include_image: false
   },
@@ -283,6 +283,15 @@ async function fetchDynamicContext(callType, userId, paintingSlug) {
     context.crossPaintingSummaries = data || []
   }
 
+  if (config.fetch.includes('companion_persona') && userId) {
+    const { data } = await supabase
+      .from('companion_persona')
+      .select('persona_name, tone_profile, memory_notes')
+      .eq('user_id', userId)
+      .maybeSingle()
+    context.companionPersona = data || null
+  }
+
   return context
 }
 
@@ -340,6 +349,15 @@ function buildDynamicContextString(context, callType) {
     if (context.paintingSubject?.subject_note) {
       lines.push(`Artist confirmed meaning: ${context.paintingSubject.subject_note}`)
     }
+    lines.push('')
+  }
+
+  if (context.companionPersona) {
+    const p = context.companionPersona
+    const t = p.tone_profile || {}
+    lines.push('── COMPANION PERSONA ───────────────────────────────────')
+    lines.push(`You are ${p.persona_name || 'Mira'}. Tone: ${t.style || 'warm'}, directness: ${t.directness || 'balanced'}, focus: ${t.focus || 'process'}.`)
+    if (p.memory_notes) lines.push(`Personal notes about this artist: ${p.memory_notes}`)
     lines.push('')
   }
 

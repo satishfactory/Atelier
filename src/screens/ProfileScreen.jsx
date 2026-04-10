@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import '../styles/design-system.css'
 import { getArtistProfile, getPaintings, getBlogPosts, getInspirations, SERVER } from '../lib/supabase'
 import PaintingCard from '../components/PaintingCard'
+import MiraSettings from '../components/MiraSettings'
 
 export default function ProfileScreen({ userId, onPaintingClick, onNavigate, onSignOut }) {
   const [profile,       setProfile]       = useState(null)
@@ -235,7 +236,12 @@ export default function ProfileScreen({ userId, onPaintingClick, onNavigate, onS
           {paintingGrid(wip)}
         </section>
       )}
-      {/* 7 ADD PAINTING */}
+      {/* 7 MIRA SETTINGS */}
+      <section className="home-section">
+        <p className="t-micro home-section-label">Companion — Mira</p>
+        <MiraSettings userId={userId} />
+      </section>
+      {/* 8 ADD PAINTING */}
       <section className="home-section">
         <button className="btn btn-warm" onClick={() => onNavigate?.('upload')}
           style={{ width: '100%', padding: 14, fontSize: 14 }}>+ Add Painting</button>

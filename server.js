@@ -639,6 +639,30 @@ app.post('/api/sessions/media',
   }
 )
 
+// ── Companion Persona (Mira) — get + upsert ──────────────────
+app.get('/api/persona/:userId', async (req, res) => {
+  const { userId } = req.params
+  const { data, error } = await supabase
+    .from('companion_persona')
+    .select('persona_name, tone_profile, memory_notes, last_updated')
+    .eq('user_id', userId)
+    .maybeSingle()
+  if (error) return res.status(500).json({ error: error.message })
+  res.json({ persona: data || null })
+})
+
+app.post('/api/persona', async (req, res) => {
+  const { userId, persona_name, tone_profile, memory_notes } = req.body || {}
+  if (!userId) return res.status(400).json({ error: 'userId required' })
+  const row = { user_id: userId, last_updated: new Date().toISOString() }
+  if (persona_name  !== undefined) row.persona_name  = persona_name
+  if (tone_profile  !== undefined) row.tone_profile  = tone_profile
+  if (memory_notes  !== undefined) row.memory_notes  = memory_notes
+  const { error } = await supabase.from('companion_persona').upsert(row, { onConflict: 'user_id' })
+  if (error) return res.status(500).json({ error: error.message })
+  res.json({ ok: true })
+})
+
 // ── Masterpiece Analysis — get latest + generate ─────────────
 app.get('/api/masterpiece-analysis/:slug', async (req, res) => {
   const { slug } = req.params
