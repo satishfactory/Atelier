@@ -4,7 +4,9 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
-export const SERVER = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`
+export const SERVER = (window.location.hostname === 'localhost' || window.location.hostname.startsWith('192.168.'))
+  ? `http://${window.location.hostname}:3001`
+  : 'https://atelier-production-836b.up.railway.app'
 
 export function friendlyError(msg) {
   if (!msg || msg === 'Failed to fetch') return 'Could not reach the server. Make sure it is running on port 3001.'
