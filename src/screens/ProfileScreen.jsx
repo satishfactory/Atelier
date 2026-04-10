@@ -176,7 +176,17 @@ export default function ProfileScreen({ userId, onPaintingClick, onNavigate, onS
         </div>
       </section>
 
-      {/* 3 FINISHED WORK */}
+      {/* 3 PRACTICE EVOLUTION */}
+      {profile.cross_painting_summary && (
+        <section className="home-section">
+          <p className="t-micro home-section-label">Practice Evolution</p>
+          <p className="t-small" style={{ color: 'var(--text-muted)', lineHeight: 1.8, fontStyle: 'italic',
+            borderLeft: '2px solid var(--warm)', paddingLeft: 14 }}>
+            {profile.cross_painting_summary}
+          </p>
+        </section>
+      )}
+      {/* 4 FINISHED WORK */}
       {finished.length > 0 && (
         <section className="home-section">
           <p className="t-micro home-section-label">Finished work</p>
