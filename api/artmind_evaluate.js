@@ -614,7 +614,11 @@ ${fullText.slice(0, 3000)}`
                   supabase.from('painting_sessions').insert({
                     user_id: userId, painting_slug: paintingSlug, version: nextVersion,
                     session_date: today, artist_note: userMessage || null, ...scores
-                  })
+                  }),
+                  supabase.from('score_history').insert({
+                    user_id: userId, painting_slug: paintingSlug, session_version: nextVersion,
+                    evaluated_at: new Date().toISOString(), ...scores
+                  }),
                 ])
               } catch (e) { console.error('score persist failed:', e.message) }
             })

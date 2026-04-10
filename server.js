@@ -639,6 +639,37 @@ app.post('/api/sessions/media',
   }
 )
 
+// ── Art Literature — get + add + delete ──────────────────────
+app.get('/api/literature/:slug', async (req, res) => {
+  const { slug } = req.params
+  const { data, error } = await supabase
+    .from('art_literature')
+    .select('id, title, author, source_type, url, notes, added_at')
+    .eq('painting_slug', slug)
+    .order('added_at', { ascending: false })
+  if (error) return res.status(500).json({ error: error.message })
+  res.json({ items: data || [] })
+})
+
+app.post('/api/literature', async (req, res) => {
+  const { paintingSlug, userId, title, author, source_type, url, notes } = req.body || {}
+  if (!paintingSlug || !userId || !title?.trim()) return res.status(400).json({ error: 'paintingSlug, userId, and title required' })
+  const { data, error } = await supabase
+    .from('art_literature')
+    .insert({ painting_slug: paintingSlug, user_id: userId, title: title.trim(), author: author || null, source_type: source_type || 'other', url: url || null, notes: notes || null })
+    .select('id, title, author, source_type, url, notes, added_at')
+    .single()
+  if (error) return res.status(500).json({ error: error.message })
+  res.json({ item: data })
+})
+
+app.delete('/api/literature/:id', async (req, res) => {
+  const { id } = req.params
+  const { error } = await supabase.from('art_literature').delete().eq('id', id)
+  if (error) return res.status(500).json({ error: error.message })
+  res.json({ ok: true })
+})
+
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
   console.log(`ArtMind server running on http://localhost:${PORT}`)
