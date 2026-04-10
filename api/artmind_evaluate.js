@@ -620,6 +620,33 @@ ${fullText.slice(0, 3000)}`
             })
           }
         } catch (e) { console.error('score extraction failed:', e.message) }
+
+        // ── Text section extraction — async, non-blocking ──
+        if (paintingSlug && userId) {
+          setImmediate(async () => {
+            try {
+              const textResp = await anthropic.messages.create({
+                model: 'claude-haiku-4-5-20251001',
+                max_tokens: 400,
+                messages: [{ role: 'user', content: `Extract these four sections from the painting evaluation below. Return ONLY valid JSON with these exact keys (string values, 1-3 sentences each, null if not present):
+{"viewer_experience":null,"market_positioning":null,"appraisal_develop":null,"appraisal_strengths":null}
+
+viewer_experience = how a viewer reads/experiences the painting formally
+market_positioning = positioning, influences, references, or collector appeal
+appraisal_develop = what needs development or process notes
+appraisal_strengths = overall strengths or summary
+
+EVALUATION:
+${fullText.slice(0, 3000)}` }]
+              })
+              const raw = textResp.content[0].text.match(/\{[\s\S]*\}/)
+              if (raw) {
+                const textFields = JSON.parse(raw[0])
+                await supabase.from('paintings').update(textFields).eq('slug', paintingSlug)
+              }
+            } catch (e) { console.error('text extraction failed:', e.message) }
+          })
+        }
       }
 
       res.write(`data: ${JSON.stringify({ done: true, tokensUsed: final.usage, scores })}\n\n`)

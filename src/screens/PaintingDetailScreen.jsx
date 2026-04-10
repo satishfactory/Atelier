@@ -212,10 +212,6 @@ export default function PaintingDetailScreen({ userId, slug, onBack, onNavigate,
             <ScoreSparkline sessions={sessions} />
           </div>
         )}
-        {/* 2b2 — BOT SCORES */}
-        <div className="detail-section" style={{ paddingTop: 0 }}>
-          <PaintingScores painting={painting} />
-        </div>
         {/* 2c — COLLECTOR VIEW */}
         <div className="detail-section" style={{ paddingTop: 0 }}>
           <p className="t-micro detail-label" style={{ letterSpacing: '0.08em' }}>COLLECTOR VIEW</p>
