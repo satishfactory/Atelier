@@ -74,6 +74,11 @@ const CALL_CONFIG = {
     fetch: [],
     max_tokens: 250,
     include_image: false
+  },
+  masterpiece_analysis: {
+    fetch: ['rolling_summary', 'painting_history'],
+    max_tokens: 1000,
+    include_image: true
   }
 }
 
@@ -739,6 +744,36 @@ Context:${subject ? ` Artist intention: ${subject}.` : ''}${insp ? ` Influences:
       content.push({ type: 'text', text: 'Analyze this WIP painting. Write a DALL-E 3 generation prompt (max 120 words) describing what it could look like when fully realized — same composition and artist\'s style, but complete. Describe: medium, key colors, textures, mark-making quality, atmosphere. Return only the prompt text, no explanation.' })
       const apiResp = await anthropic.messages.create({ ...modelParams, messages: [{ role: 'user', content }] })
       return res.status(200).json({ response: apiResp.content[0].text.trim(), tokensUsed: apiResp.usage })
+    }
+
+    // ── masterpiece_analysis — compare painting to art history ──
+    if (callType === 'masterpiece_analysis') {
+      const title    = context.paintingTitle || paintingSlug
+      const summary  = context.rollingSummary || ''
+      const litItems = req.body.literatureItems || []
+      const litBlock = litItems.length
+        ? `\n\nArtist's reference list:\n${litItems.map(i => `- ${i.title}${i.author ? ` by ${i.author}` : ''}${i.notes ? `: ${i.notes}` : ''}`).join('\n')}`
+        : ''
+
+      const prompt = `You are an art historian and studio critic. Analyse this painting by the artist and write a masterpiece context analysis.
+
+PAINTING: "${title}"
+STUDIO NOTES: ${summary || 'none'}${litBlock}
+
+Return ONLY raw JSON — no markdown, no code fences. Start with { end with }:
+{"analysis":"3-4 paragraph critical analysis situating this work in art history — reference specific movements, artists, or works it echoes. Be concrete, not generic. Max 300 words.","comparisons":[{"title":"Work title","artist":"Artist name","connection":"1 sentence on the specific visual or conceptual link"}]}`
+
+      userContent[0] = { type: 'text', text: prompt }
+      const apiResp = await anthropic.messages.create({ ...modelParams, messages: [{ role: 'user', content: userContent }] })
+      const raw = apiResp.content[0].text.match(/\{[\s\S]*\}/)
+      let parsed = { analysis: apiResp.content[0].text, comparisons: [] }
+      if (raw) { try { parsed = JSON.parse(raw[0]) } catch (_) {} }
+
+      await supabase.from('masterpiece_analysis').insert({
+        painting_slug: paintingSlug, user_id: userId,
+        analysis_text: parsed.analysis, comparisons: parsed.comparisons || [],
+      })
+      return res.status(200).json({ analysis: parsed.analysis, comparisons: parsed.comparisons || [], tokensUsed: apiResp.usage })
     }
 
     // ── morning_message — structured briefing + daily challenge ──

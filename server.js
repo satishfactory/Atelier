@@ -639,6 +639,43 @@ app.post('/api/sessions/media',
   }
 )
 
+// ── Masterpiece Analysis — get latest + generate ─────────────
+app.get('/api/masterpiece-analysis/:slug', async (req, res) => {
+  const { slug } = req.params
+  const { data, error } = await supabase
+    .from('masterpiece_analysis')
+    .select('id, analysis_text, comparisons, generated_at')
+    .eq('painting_slug', slug)
+    .order('generated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (error) return res.status(500).json({ error: error.message })
+  res.json({ analysis: data || null })
+})
+
+app.post('/api/masterpiece-analysis', async (req, res) => {
+  const { paintingSlug, userId, paintingImage } = req.body || {}
+  if (!paintingSlug || !userId) return res.status(400).json({ error: 'paintingSlug and userId required' })
+  // Fetch literature refs to seed the analysis
+  const { data: litItems } = await supabase
+    .from('art_literature')
+    .select('title, author, notes')
+    .eq('painting_slug', paintingSlug)
+    .eq('user_id', userId)
+  try {
+    const r = await fetch(`http://localhost:${process.env.PORT || 3001}/api/evaluate`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ callType: 'masterpiece_analysis', paintingSlug, userId, paintingImage, literatureItems: litItems || [] }),
+    })
+    const d = await r.json()
+    if (!r.ok) throw new Error(d.error)
+    res.json(d)
+  } catch (err) {
+    console.error('[masterpiece-analysis]', err.message)
+    res.status(500).json({ error: err.message })
+  }
+})
+
 // ── Art Literature — get + add + delete ──────────────────────
 app.get('/api/literature/:slug', async (req, res) => {
   const { slug } = req.params

@@ -11,6 +11,7 @@ import CollectorBrief from '../components/CollectorBrief'
 import WipVision from '../components/WipVision'
 import PaintingScores from '../components/PaintingScores'
 import LiteratureSection from '../components/LiteratureSection'
+import MasterpieceAnalysis from '../components/MasterpieceAnalysis'
 
 function fmt(d) {
   if (!d) return null
@@ -296,6 +297,11 @@ export default function PaintingDetailScreen({ userId, slug, onBack, onNavigate,
         <div className="detail-section">
           <p className="t-micro detail-label" style={{ letterSpacing: '0.08em' }}>REFERENCES</p>
           <LiteratureSection slug={slug} userId={userId} />
+        </div>
+        {/* 5c — MASTERPIECE ANALYSIS */}
+        <div className="detail-section">
+          <p className="t-micro detail-label" style={{ letterSpacing: '0.08em' }}>ART HISTORY</p>
+          <MasterpieceAnalysis slug={slug} userId={userId} paintingImageBase64={null} />
         </div>
         {/* 6 — ADD NOTE */}
         <div className="detail-section">
