@@ -221,13 +221,15 @@ async function fetchDynamicContext(callType, userId, paintingSlug) {
     context.evolution = data?.[0] || null
   }
 
-  // Load artist style protocol
-  const { data: styleData } = await supabase
-    .from('artist_style_protocols')
-    .select('style_name, colour_correction, complexity_correction, salience_correction, fluency_method')
-    .eq('user_id', userId)
-    .limit(1)
-  context.styleProtocol = styleData?.[0] || null
+  // Load artist style protocol — only for calls that need it
+  if (['evaluate_painting', 'generate_blog'].includes(callType)) {
+    const { data: styleData } = await supabase
+      .from('artist_style_protocols')
+      .select('style_name, colour_correction, complexity_correction, salience_correction, fluency_method')
+      .eq('user_id', userId)
+      .limit(1)
+    context.styleProtocol = styleData?.[0] || null
+  }
 
   // ── New: rolling summary + session context ───────────────────
   if (config.fetch.includes('rolling_summary') && paintingSlug) {

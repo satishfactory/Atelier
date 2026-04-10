@@ -9,6 +9,7 @@ import SessionRecorder from '../components/SessionRecorder'
 import PastSessionCard from '../components/PastSessionCard'
 import CollectorBrief from '../components/CollectorBrief'
 import WipVision from '../components/WipVision'
+import PaintingScores from '../components/PaintingScores'
 
 function fmt(d) {
   if (!d) return null
@@ -183,13 +184,15 @@ export default function PaintingDetailScreen({ userId, slug, onBack, onNavigate,
           </div>
         </div>
         {/* 2 — METADATA */}
-        {painting.tags?.length > 0 && (
+        {(painting.tags?.length > 0 || painting.appraisal_develop || painting.market_positioning || painting.viewer_experience || painting.appraisal_strengths) && (
           <div className="detail-section" style={{ paddingTop: 0 }}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {painting.tags.map((t, i) => (
-                <span key={i} className="t-micro" style={{ padding: '3px 10px', border: '0.5px solid var(--border)', borderRadius: 99, color: 'var(--text-muted)' }}>{t}</span>
-              ))}
-            </div>
+            {painting.tags?.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                {painting.tags.map((t, i) => (
+                  <span key={i} className="t-micro" style={{ padding: '3px 10px', border: '0.5px solid var(--border)', borderRadius: 99, color: 'var(--text-muted)' }}>{t}</span>
+                ))}
+              </div>
+            )}
             {[
               ['Process', painting.appraisal_develop],
               ['Influences & References', painting.market_positioning],
@@ -209,6 +212,10 @@ export default function PaintingDetailScreen({ userId, slug, onBack, onNavigate,
             <ScoreSparkline sessions={sessions} />
           </div>
         )}
+        {/* 2b2 — BOT SCORES */}
+        <div className="detail-section" style={{ paddingTop: 0 }}>
+          <PaintingScores painting={painting} />
+        </div>
         {/* 2c — COLLECTOR VIEW */}
         <div className="detail-section" style={{ paddingTop: 0 }}>
           <p className="t-micro detail-label" style={{ letterSpacing: '0.08em' }}>COLLECTOR VIEW</p>
