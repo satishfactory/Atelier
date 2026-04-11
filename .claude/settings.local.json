@@ -8,7 +8,12 @@
       "Bash(node:*)",
       "Bash(python3:*)",
       "Read(//Users/satishfactory.art/Projects/**)",
-      "Bash(tar --exclude='atelier/node_modules' --exclude='atelier/dist' --exclude='atelier/.vite' -czf \"atelier_backup_2026-04-02_v2.tar.gz\" atelier/)"
+      "Bash(tar --exclude='atelier/node_modules' --exclude='atelier/dist' --exclude='atelier/.vite' -czf \"atelier_backup_2026-04-02_v2.tar.gz\" atelier/)",
+      "Bash(ls src/components/Mira* src/components/Masterpiece* src/components/Literature*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git check-ignore:*)"
     ]
   }
 }
