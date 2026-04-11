@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { SERVER } from './supabase'
 
 export function useVoiceInput() {
   const recognitionRef = useRef(null)
@@ -56,49 +57,35 @@ export function MicButton({ onClick, listening }) {
   )
 }
 
-function pickVoice() {
-  const voices = window.speechSynthesis.getVoices()
-  // Prefer natural-sounding male English voices (macOS/iOS premium voices first)
-  const preferred = ['Daniel', 'Tom', 'Alex', 'Gordon', 'Oliver', 'Aaron', 'Fred']
-  for (const name of preferred) {
-    const v = voices.find(v => v.name.includes(name) && v.lang.startsWith('en'))
-    if (v) return v
-  }
-  return voices.find(v => v.lang.startsWith('en')) || null
-}
-
 export function useSpeech() {
   const [speaking, setSpeaking] = useState(false)
+  const audioRef = useRef(null)
 
-  function speak(text) {
-    if (!window.speechSynthesis) return
-    window.speechSynthesis.cancel()
-    const utt = new SpeechSynthesisUtterance(text)
-    utt.rate  = 0.88
-    utt.pitch = 0.85
-    utt.onstart = () => setSpeaking(true)
-    utt.onend   = () => setSpeaking(false)
-    utt.onerror = () => setSpeaking(false)
-
-    const doSpeak = () => {
-      const voice = pickVoice()
-      if (voice) utt.voice = voice
-      window.speechSynthesis.speak(utt)
-    }
-
-    const voices = window.speechSynthesis.getVoices()
-    if (voices.length) {
-      doSpeak()
-    } else {
-      // Chrome loads voices async on first call
-      window.speechSynthesis.onvoiceschanged = () => {
-        window.speechSynthesis.onvoiceschanged = null
-        doSpeak()
-      }
-    }
+  async function speak(text, voice = 'nova') {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null }
+    setSpeaking(true)
+    try {
+      const res = await fetch(`${SERVER}/api/tts`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, voice }),
+      })
+      if (!res.ok) throw new Error('TTS failed')
+      const blob = await res.blob()
+      const url  = URL.createObjectURL(blob)
+      const audio = new Audio(url)
+      audioRef.current = audio
+      audio.onended = () => { setSpeaking(false); URL.revokeObjectURL(url) }
+      audio.onerror = () => { setSpeaking(false) }
+      await audio.play()
+    } catch { setSpeaking(false) }
   }
 
-  function stop() { window.speechSynthesis?.cancel(); setSpeaking(false) }
+  function stop() {
+    audioRef.current?.pause()
+    audioRef.current = null
+    setSpeaking(false)
+  }
+
   return { speaking, speak, stop }
 }
 

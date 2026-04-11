@@ -639,6 +639,42 @@ app.post('/api/sessions/media',
   }
 )
 
+// ── TTS — OpenAI tts-1-hd, realistic voice ───────────────────
+app.post('/api/tts', async (req, res) => {
+  const { text, voice = 'nova' } = req.body || {}
+  if (!text?.trim()) return res.status(400).json({ error: 'text required' })
+  try {
+    const response = await openai.audio.speech.create({
+      model: 'tts-1-hd', voice,
+      input: text.slice(0, 4096),
+    })
+    const buffer = Buffer.from(await response.arrayBuffer())
+    res.set({ 'Content-Type': 'audio/mpeg', 'Content-Length': buffer.length })
+    res.send(buffer)
+  } catch (err) {
+    console.error('[tts]', err.message)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ── Transcribe — Whisper only, no DB write ────────────────────
+app.post('/api/transcribe',
+  upload.single('file'),
+  async (req, res) => {
+    const file = req.file
+    if (!file) return res.status(400).json({ error: 'file required' })
+    try {
+      const transcript = await transcribeFile(file.path, file.mimetype, null)
+      res.json({ transcript })
+    } catch (err) {
+      console.error('[transcribe]', err.message)
+      res.status(500).json({ error: err.message })
+    } finally {
+      await unlink(file.path).catch(() => {})
+    }
+  }
+)
+
 // ── Companion Persona (Mira) — get + upsert ──────────────────
 app.get('/api/persona/:userId', async (req, res) => {
   const { userId } = req.params

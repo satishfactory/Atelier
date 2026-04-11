@@ -1,13 +1,32 @@
-import { useState } from 'react'
-import { saveStudioLog } from '../lib/supabase'
+import { useRef, useState } from 'react'
+import { saveStudioLog, SERVER } from '../lib/supabase'
+import { useVoiceInput, MicButton } from '../lib/useVoiceInput'
 
 const MOODS = ['focused', 'flowing', 'struggling']
 
 export default function StudioLogEntry({ userId, wipPaintings = [], onSaved, onClose }) {
-  const [mood,    setMood]    = useState('focused')
-  const [note,    setNote]    = useState('')
-  const [slug,    setSlug]    = useState('')
-  const [saving,  setSaving]  = useState(false)
+  const [mood,         setMood]         = useState('focused')
+  const [note,         setNote]         = useState('')
+  const [slug,         setSlug]         = useState('')
+  const [saving,       setSaving]       = useState(false)
+  const [transcribing, setTranscribing] = useState(false)
+  const noteRef  = useRef(null)
+  const videoRef = useRef(null)
+  const { listening, toggleVoice } = useVoiceInput()
+
+  async function handleVideo(e) {
+    const file = e.target.files?.[0]; if (!file) return
+    setTranscribing(true)
+    try {
+      const form = new FormData()
+      form.append('file', file)
+      const res = await fetch(`${SERVER}/api/transcribe`, { method: 'POST', body: form })
+      const d   = await res.json()
+      if (!res.ok) throw new Error(d.error)
+      setNote(prev => prev ? `${prev} ${d.transcript}` : d.transcript)
+    } catch (err) { alert(err.message) }
+    finally { setTranscribing(false); e.target.value = '' }
+  }
 
   async function handleSave() {
     if (!note.trim()) return
@@ -62,9 +81,23 @@ export default function StudioLogEntry({ userId, wipPaintings = [], onSaved, onC
         {/* Note */}
         <div>
           <p className="t-micro" style={{ color: 'var(--text-muted)', marginBottom: 8 }}>What happened in the studio?</p>
-          <textarea rows={3} value={note} onChange={e => setNote(e.target.value)} placeholder="What did you work on, notice, struggle with or break through?"
-            style={{ width: '100%', fontSize: 13, padding: '10px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)',
-              background: 'var(--surface)', color: 'var(--text)', resize: 'none', boxSizing: 'border-box' }} />
+          <div style={{ position: 'relative' }}>
+            <textarea ref={noteRef} rows={3} value={note} onChange={e => setNote(e.target.value)}
+              placeholder="What did you work on, notice, struggle with or break through?"
+              style={{ width: '100%', fontSize: 13, padding: '10px 12px', paddingRight: 100, borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', resize: 'none', boxSizing: 'border-box' }} />
+            <div style={{ position: 'absolute', right: 8, bottom: 8, display: 'flex', gap: 6 }}>
+              {/* Video button */}
+              <button onClick={() => videoRef.current?.click()} disabled={transcribing} title="Record video note"
+                style={{ width: 40, height: 40, borderRadius: '50%', border: 'none', background: transcribing ? 'var(--warm)' : 'var(--stone)',
+                  color: 'var(--dark)', fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {transcribing ? '⏳' : '🎥'}
+              </button>
+              <input ref={videoRef} type="file" accept="video/*,audio/*" capture="environment" style={{ display: 'none' }} onChange={handleVideo} />
+              {/* Mic button */}
+              <MicButton onClick={() => toggleVoice(setNote, noteRef)} listening={listening} />
+            </div>
+          </div>
         </div>
 
         <button className="btn btn-warm" onClick={handleSave} disabled={saving || !note.trim()}
