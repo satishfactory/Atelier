@@ -2,11 +2,15 @@ import { useState, useEffect } from 'react'
 import './public.css'
 
 const SLIDES = [
-  '/hero/1.jpeg',
-  '/hero/2.jpeg',
-  '/hero/3.jpeg',
-  '/hero/5.jpeg',
-  '/hero/6.jpeg',
+  '/hero/at1.jpeg',
+  '/hero/at2.jpeg',
+  '/hero/at4.jpeg',
+  '/hero/at5.jpeg',
+  '/hero/at6.jpeg',
+  '/hero/at8.jpeg',
+  '/hero/at9.jpeg',
+  '/hero/at11.jpeg',
+  '/hero/at12.jpeg',
 ]
 
 export default function PublicHero({ onLogin }) {
