@@ -23,31 +23,37 @@ export default function PublicHero({ onLogin }) {
 
   return (
     <section className="public-hero">
-      {SLIDES.map((src, i) => (
-        <div
-          key={src}
-          className={`public-hero__slide${i === active ? ' active' : ''}`}
-          style={{ backgroundImage: `url(${src})` }}
-        />
-      ))}
 
-      <div className="public-hero__overlay" />
+      {/* Gallery wall — painting shown at natural proportions */}
+      <div className="public-hero__frame">
+        <div className="public-hero__canvas">
+          {SLIDES.map((src, i) => (
+            <div
+              key={src}
+              className={`public-hero__slide${i === active ? ' active' : ''}`}
+              style={{ backgroundImage: `url(${src})` }}
+            />
+          ))}
+        </div>
 
+        <div className="public-hero__dots">
+          {SLIDES.map((_, i) => (
+            <div key={i} className={`public-hero__dot${i === active ? ' active' : ''}`} />
+          ))}
+        </div>
+      </div>
+
+      {/* Text below the painting */}
       <div className="public-hero__content">
         <h1 className="public-hero__title">Atelier</h1>
         <p className="public-hero__tagline">
-          A painter's studio.<br />Private. Serious. Alive.
+          A painter's studio. Private. Serious. Alive.
         </p>
         <button className="public-hero__cta" onClick={onLogin}>
           Enter the studio →
         </button>
       </div>
 
-      <div className="public-hero__dots">
-        {SLIDES.map((_, i) => (
-          <div key={i} className={`public-hero__dot${i === active ? ' active' : ''}`} />
-        ))}
-      </div>
     </section>
   )
 }
