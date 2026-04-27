@@ -1,0 +1,138 @@
+/* ── How It Works — process flow ── */
+
+.hiw {
+  padding: var(--space-7) var(--space-5) var(--space-6);
+  background: var(--bg);
+  border-bottom: 0.5px solid var(--border);
+}
+
+.hiw__label {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: var(--space-5);
+}
+
+/* ── Node rail ── */
+.hiw__rail {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0;
+  max-width: 640px;
+  margin: 0 auto var(--space-6);
+  position: relative;
+}
+
+.hiw__step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+}
+
+/* connecting line between nodes */
+.hiw__step + .hiw__step::before {
+  content: '';
+  position: absolute;
+  top: 18px;
+  left: calc(-50% + 18px);
+  right: calc(50% + 18px);
+  height: 1px;
+  background: var(--border);
+  z-index: 0;
+  transition: background 0.4s ease;
+}
+
+.hiw__step.active + .hiw__step::before,
+.hiw__step.done + .hiw__step::before {
+  background: var(--accent);
+}
+
+.hiw__node {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-serif);
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.hiw__step.active .hiw__node,
+.hiw__step.done .hiw__node {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--white);
+}
+
+.hiw__step-title {
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: var(--space-2);
+  letter-spacing: 0.04em;
+  transition: color 0.3s;
+  max-width: 56px;
+}
+
+.hiw__step.active .hiw__step-title {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ── Detail card ── */
+.hiw__detail {
+  max-width: 480px;
+  margin: 0 auto;
+  text-align: center;
+  min-height: 72px;
+}
+
+.hiw__detail-title {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: var(--space-2);
+}
+
+.hiw__detail-desc {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* ── Dots (used in onboarding mode) ── */
+.hiw__dots {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-top: var(--space-4);
+}
+
+.hiw__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: var(--radius-full);
+  background: var(--border);
+  transition: background 0.3s;
+}
+
+.hiw__dot.active { background: var(--accent); }

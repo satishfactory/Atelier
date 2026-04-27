@@ -9,6 +9,7 @@ import BlogScreen from './screens/BlogScreen'
 import ProfileScreen from './screens/ProfileScreen'
 import OnboardingScreen from './screens/OnboardingScreen'
 import LoginScreen from './screens/LoginScreen'
+import PublicLanding from './components/PublicLanding'
 import BottomNav from './components/BottomNav'
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
   const [onboarded,    setOnboarded]    = useState(() => !!localStorage.getItem('onboarding_complete'))
   const [userId,       setUserId]       = useState(null)
   const [authReady,    setAuthReady]    = useState(false)
+  const [showLogin,    setShowLogin]    = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -45,7 +47,10 @@ export default function App() {
     </div>
   )
 
-  if (!userId) return <LoginScreen />
+  if (!userId) {
+    if (showLogin) return <LoginScreen onBack={() => setShowLogin(false)} />
+    return <PublicLanding onLogin={() => setShowLogin(true)} />
+  }
 
   if (!onboarded) return <OnboardingScreen userId={userId} onComplete={() => setOnboarded(true)} />
 

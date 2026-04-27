@@ -2,7 +2,7 @@ import { useState } from 'react'
 import '../styles/design-system.css'
 import { signIn, signUp } from '../lib/supabase'
 
-export default function LoginScreen() {
+export default function LoginScreen({ onBack }) {
   const [mode,     setMode]     = useState('signin') // 'signin' | 'signup'
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
@@ -31,7 +31,13 @@ export default function LoginScreen() {
   }
 
   return (
-    <div style={{ minHeight: '100dvh', background: 'var(--cream)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 var(--space-5)' }}>
+    <div style={{ minHeight: '100dvh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 var(--space-5)' }}>
+      {onBack && (
+        <button onClick={onBack}
+          style={{ position: 'absolute', top: 'var(--space-5)', left: 'var(--space-5)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '0.9rem', fontFamily: 'var(--font-sans)' }}>
+          ← Back
+        </button>
+      )}
       <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '2.4rem', fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>Atelier</h1>
       <p className="t-small" style={{ color: 'var(--text-muted)', marginBottom: 40 }}>Your private AI studio companion</p>
 

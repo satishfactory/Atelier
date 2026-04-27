@@ -315,6 +315,27 @@ export async function updateRollingSummary(slug, text) {
   if (error) throw error
 }
 
+// ── Public (anon) reads ──────────────────────────────────────
+export async function getPublicBlogPosts() {
+  const { data } = await supabase
+    .from('blog_posts')
+    .select('id, title, full_text, painting_slug')
+    .eq('status', 'published')
+    .order('created_at', { ascending: false })
+    .limit(6)
+  return data || []
+}
+
+export async function getPublicPaintings() {
+  const { data } = await supabase
+    .from('paintings')
+    .select('slug, title, image_url, year, status')
+    .in('status', ['finished', 'masterpiece'])
+    .order('year', { ascending: false })
+    .limit(9)
+  return data || []
+}
+
 // ── Auth ─────────────────────────────────────────────────────
 export async function signIn(email, password) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password })
