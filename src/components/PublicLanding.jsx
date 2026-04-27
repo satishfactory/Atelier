@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import PublicHero from './PublicHero'
 import PublicScorecard from './PublicScorecard'
+import PublicManifesto from './PublicManifesto'
+import PublicFeatures from './PublicFeatures'
 import PublicPosters from './PublicPosters'
 import PublicGallery from './PublicGallery'
 import HowItWorks from './HowItWorks'
@@ -19,6 +21,7 @@ export default function PublicLanding({ onLogin }) {
 
       <PublicHero onLogin={requestLogin} />
       <PublicScorecard />
+      <PublicManifesto onLogin={requestLogin} />
 
       {/* What this site is — dark strip */}
       <div className="public-intro">
@@ -33,6 +36,8 @@ export default function PublicLanding({ onLogin }) {
           ))}
         </div>
       </div>
+
+      <PublicFeatures onLogin={requestLogin} />
 
       {/* Attractive poster grid of quotes + journal excerpts */}
       <PublicPosters onLogin={requestLogin} />

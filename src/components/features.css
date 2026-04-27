@@ -1,0 +1,205 @@
+/* ── Manifesto — value proposition vs competitors ── */
+
+.manifesto {
+  padding: var(--space-8, 5rem) var(--space-5);
+  background: var(--bg);
+  border-top: 0.5px solid var(--border);
+  border-bottom: 0.5px solid var(--border);
+}
+
+.manifesto__inner {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.manifesto__kicker {
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 var(--space-3);
+}
+
+.manifesto__title {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 4.5vw, 3.2rem);
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.15;
+  margin: 0 0 var(--space-4);
+}
+
+.manifesto__sub {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  color: var(--text-muted);
+  line-height: 1.75;
+  max-width: 580px;
+  margin: 0 0 var(--space-7);
+}
+
+.manifesto__sub em { font-style: italic; color: var(--text); }
+
+/* Comparison table */
+.manifesto__table {
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin-bottom: var(--space-6);
+}
+
+.manifesto__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  border-bottom: 0.5px solid var(--border);
+}
+
+.manifesto__row:last-child { border-bottom: none; }
+
+.manifesto__row > * {
+  padding: 13px var(--space-4);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  border-right: 0.5px solid var(--border);
+}
+
+.manifesto__row > *:last-child { border-right: none; }
+
+.manifesto__row--head {
+  background: var(--dark);
+}
+
+.manifesto__row--head > * {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+  font-weight: 600;
+  padding: 10px var(--space-4);
+}
+
+.manifesto__row-label {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.manifesto__row-them {
+  color: var(--text-muted);
+}
+
+.manifesto__row-us {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.manifesto__cta-row {
+  display: flex;
+  justify-content: flex-start;
+}
+
+@media (max-width: 560px) {
+  .manifesto__row { grid-template-columns: 1fr 1fr; }
+  .manifesto__row-label { grid-column: 1 / -1; border-right: none; border-bottom: 0.5px solid var(--border); }
+}
+
+/* ── Feature Grid ── */
+
+.pub-features {
+  padding: var(--space-8, 5rem) var(--space-5);
+  background: var(--surface);
+  border-bottom: 0.5px solid var(--border);
+}
+
+.pub-features__header {
+  max-width: 640px;
+  margin: 0 auto var(--space-6);
+  text-align: center;
+}
+
+.pub-features__kicker {
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 var(--space-3);
+}
+
+.pub-features__title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.25;
+}
+
+.pub-features__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
+  max-width: 1120px;
+  margin: 0 auto var(--space-7);
+}
+
+.feat-card {
+  background: var(--bg);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.22s ease, border-color 0.22s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.feat-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+
+.feat-card__img-wrap {
+  width: 100%;
+  aspect-ratio: 16/10;
+  overflow: hidden;
+  background: var(--dark);
+  flex-shrink: 0;
+}
+
+.feat-card__img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.feat-card:hover .feat-card__img-wrap img { transform: scale(1.03); }
+
+.feat-card__body {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.feat-card__title {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.feat-card__desc {
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+  margin: 0;
+}
+
+.pub-features__footer {
+  text-align: center;
+}
