@@ -3,33 +3,45 @@ import PublicHero from './PublicHero'
 import PublicQuotes from './PublicQuotes'
 import PublicGallery from './PublicGallery'
 import HowItWorks from './HowItWorks'
+import GuestEvaluator from './GuestEvaluator'
 import LoginPrompt from './LoginPrompt'
 import './public.css'
 
 export default function PublicLanding({ onLogin }) {
   const [showPrompt, setShowPrompt] = useState(false)
 
-  function requestLogin() {
-    setShowPrompt(true)
-  }
-
-  function handleConfirmLogin() {
-    setShowPrompt(false)
-    onLogin()
-  }
+  function requestLogin() { setShowPrompt(true) }
+  function handleConfirmLogin() { setShowPrompt(false); onLogin() }
 
   return (
     <div className="public-landing">
+
       <PublicHero onLogin={requestLogin} />
+
+      {/* What this site is */}
+      <div className="public-intro">
+        <p>
+          Atelier is a private AI studio companion for painters who want to think more deeply
+          about their work — not share it. Every painting builds a journal of evaluations,
+          conversations, and essays written in your voice.
+        </p>
+        <div className="public-intro__pills">
+          {['AI evaluation', 'Score over time', 'Companion dialogue', 'Process journal', 'Private by design'].map(t => (
+            <span key={t} className="public-intro__pill">{t}</span>
+          ))}
+        </div>
+      </div>
+
+      <GuestEvaluator onLogin={requestLogin} />
+
       <PublicQuotes onLogin={requestLogin} />
+
       <HowItWorks showCta onCta={requestLogin} />
+
       <PublicGallery onLogin={requestLogin} />
 
       {showPrompt && (
-        <LoginPrompt
-          onLogin={handleConfirmLogin}
-          onDismiss={() => setShowPrompt(false)}
-        />
+        <LoginPrompt onLogin={handleConfirmLogin} onDismiss={() => setShowPrompt(false)} />
       )}
     </div>
   )

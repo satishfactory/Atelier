@@ -106,6 +106,53 @@ app.post('/api/evaluate', async (req, res) => {
   }
 })
 
+// ── Guest demo evaluate (no auth, no DB writes, streaming) ───
+import Anthropic from '@anthropic-ai/sdk'
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+
+app.post('/api/demo-evaluate', async (req, res) => {
+  const { imageBase64 } = req.body || {}
+  if (!imageBase64) return res.status(400).json({ error: 'imageBase64 required' })
+
+  res.setHeader('Content-Type', 'text/event-stream')
+  res.setHeader('Cache-Control', 'no-cache')
+  res.setHeader('Connection', 'keep-alive')
+
+  try {
+    const stream = await anthropic.messages.stream({
+      model: 'claude-opus-4-6',
+      max_tokens: 600,
+      system: `You are a perceptive art companion giving a first reading of a painting.
+Respond in 3 short paragraphs: (1) what immediately commands attention and why,
+(2) the emotional register — what state does this painting occupy,
+(3) one specific thing worth developing further.
+Be direct, intelligent, honest. No flattery. Speak to the artist, not about the painting.`,
+      messages: [{
+        role: 'user',
+        content: [{
+          type: 'image',
+          source: { type: 'base64', media_type: 'image/jpeg', data: imageBase64 }
+        }, {
+          type: 'text',
+          text: 'Please give me a first reading of this painting.'
+        }]
+      }]
+    })
+
+    for await (const event of stream) {
+      if (event.type === 'content_block_delta' && event.delta?.type === 'text_delta') {
+        res.write(`data: ${JSON.stringify({ delta: event.delta.text })}\n\n`)
+      }
+    }
+    res.write(`data: ${JSON.stringify({ done: true })}\n\n`)
+    res.end()
+  } catch (err) {
+    console.error('[demo-evaluate]', err.message)
+    res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`)
+    res.end()
+  }
+})
+
 // ── Upload photo (resize + store, no AI tokens) ───────────────
 import sharp from 'sharp'
 app.post('/api/upload-photo', async (req, res) => {

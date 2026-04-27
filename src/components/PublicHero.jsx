@@ -3,7 +3,6 @@ import './public.css'
 
 const SLIDES = [
   '/hero/at1.jpeg',
-  '/hero/at2.jpeg',
   '/hero/at4.jpeg',
   '/hero/at5.jpeg',
   '/hero/at6.jpeg',
