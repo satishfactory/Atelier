@@ -329,7 +329,7 @@ export async function getPublicBlogPosts() {
 export async function getPublicPaintings() {
   const { data } = await supabase
     .from('paintings')
-    .select('slug, title, image_url, year, status')
+    .select('slug, title, image_url, year, status, medium')
     .in('status', ['finished', 'masterpiece'])
     .order('year', { ascending: false })
     .limit(9)
