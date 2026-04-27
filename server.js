@@ -111,8 +111,9 @@ import Anthropic from '@anthropic-ai/sdk'
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 app.post('/api/demo-evaluate', async (req, res) => {
-  const { imageBase64 } = req.body || {}
+  const { imageBase64, mimeType } = req.body || {}
   if (!imageBase64) return res.status(400).json({ error: 'imageBase64 required' })
+  const mediaType = (mimeType && mimeType.startsWith('image/')) ? mimeType : 'image/jpeg'
 
   res.setHeader('Content-Type', 'text/event-stream')
   res.setHeader('Cache-Control', 'no-cache')
@@ -131,7 +132,7 @@ Be direct, intelligent, honest. No flattery. Speak to the artist, not about the 
         role: 'user',
         content: [{
           type: 'image',
-          source: { type: 'base64', media_type: 'image/jpeg', data: imageBase64 }
+          source: { type: 'base64', media_type: mediaType, data: imageBase64 }
         }, {
           type: 'text',
           text: 'Please give me a first reading of this painting.'

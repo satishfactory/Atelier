@@ -23,6 +23,8 @@ export default function GuestEvaluator({ onLogin }) {
     setLoading(true)
     setResponse('')
     try {
+      // Detect mime type — default to jpeg for unknown types
+      const mimeType = file.type && file.type.startsWith('image/') ? file.type : 'image/jpeg'
       const b64 = await new Promise((resolve, reject) => {
         const reader = new FileReader()
         reader.onload  = ev => resolve(ev.target.result.split(',')[1])
@@ -32,7 +34,7 @@ export default function GuestEvaluator({ onLogin }) {
       const res = await fetch(`${SERVER}/api/demo-evaluate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: b64 }),
+        body: JSON.stringify({ imageBase64: b64, mimeType }),
       })
       if (!res.ok) { const d = await res.json(); throw new Error(d.error) }
 

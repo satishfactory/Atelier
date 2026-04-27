@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import PublicHero from './PublicHero'
-import PublicQuotes from './PublicQuotes'
+import PublicPosters from './PublicPosters'
 import PublicGallery from './PublicGallery'
 import HowItWorks from './HowItWorks'
 import GuestEvaluator from './GuestEvaluator'
@@ -18,7 +18,7 @@ export default function PublicLanding({ onLogin }) {
 
       <PublicHero onLogin={requestLogin} />
 
-      {/* What this site is */}
+      {/* What this site is — dark strip */}
       <div className="public-intro">
         <p>
           Atelier is a private AI studio companion for painters who want to think more deeply
@@ -32,9 +32,11 @@ export default function PublicLanding({ onLogin }) {
         </div>
       </div>
 
-      <GuestEvaluator onLogin={requestLogin} />
+      {/* Attractive poster grid of quotes + journal excerpts */}
+      <PublicPosters onLogin={requestLogin} />
 
-      <PublicQuotes onLogin={requestLogin} />
+      {/* Guest evaluator — try it before signing up */}
+      <GuestEvaluator onLogin={requestLogin} />
 
       <HowItWorks showCta onCta={requestLogin} />
 
