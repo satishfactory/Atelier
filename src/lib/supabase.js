@@ -359,24 +359,44 @@ export async function signOut() {
 export async function getStories(userId, status = null) {
   let query = supabase
     .from('stories')
-    .select('*, story_media(public_url, is_cover, sort_order)')
+    .select('*')
     .order('created_at', { ascending: false })
   if (userId) query = query.eq('user_id', userId)
   if (status)  query = query.eq('status', status)
   const { data, error } = await query
   if (error) throw error
-  return data
+  if (!data?.length) return data
+
+  const slugs = data.map(s => s.slug)
+  const { data: media } = await supabase
+    .from('story_media')
+    .select('story_slug, public_url, is_cover, sort_order')
+    .in('story_slug', slugs)
+  const mediaMap = {}
+  media?.forEach(m => {
+    if (!mediaMap[m.story_slug]) mediaMap[m.story_slug] = []
+    mediaMap[m.story_slug].push(m)
+  })
+  return data.map(s => ({ ...s, story_media: mediaMap[s.slug] || [] }))
 }
 
 export async function getStory(userId, slug) {
-  let query = supabase
-    .from('stories')
-    .select('*, story_media(*), story_sessions(*), story_blogs(*)')
-    .eq('slug', slug)
+  let query = supabase.from('stories').select('*').eq('slug', slug)
   if (userId) query = query.eq('user_id', userId)
-  const { data, error } = await query.single()
+  const { data: story, error } = await query.single()
   if (error) throw error
-  return data
+
+  const [mediaRes, sessionsRes, blogsRes] = await Promise.all([
+    supabase.from('story_media').select('*').eq('story_slug', slug).order('sort_order'),
+    supabase.from('story_sessions').select('*').eq('story_slug', slug).order('session_date', { ascending: false }),
+    supabase.from('story_blogs').select('*').eq('story_slug', slug).order('created_at', { ascending: false }),
+  ])
+  return {
+    ...story,
+    story_media:    mediaRes.data    || [],
+    story_sessions: sessionsRes.data || [],
+    story_blogs:    blogsRes.data    || [],
+  }
 }
 
 export async function upsertStory(userId, story) {
