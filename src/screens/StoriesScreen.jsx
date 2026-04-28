@@ -16,12 +16,14 @@ export default function StoriesScreen({ userId, onStoryClick }) {
   const [activeIdx,  setActiveIdx]  = useState(0)
   const [showModal,  setShowModal]  = useState(false)
   const [loading,    setLoading]    = useState(true)
+  const [error,      setError]      = useState(null)
 
   useEffect(() => {
     setLoading(true)
+    setError(null)
     getStories(userId, FILTERS[activeIdx].status)
       .then(data => { setStories(data || []); setLoading(false) })
-      .catch(e => { alert(friendlyError(e.message)); setLoading(false) })
+      .catch(e => { setError(friendlyError(e.message)); setLoading(false) })
   }, [activeIdx, userId])
 
   return (
@@ -40,6 +42,8 @@ export default function StoriesScreen({ userId, onStoryClick }) {
           {stories.length} {stories.length === 1 ? 'story' : 'stories'}
         </span>
       </div>
+
+      {error && <p className="t-small" style={{ color: 'var(--coral)', padding: 'var(--space-3)' }}>{error}</p>}
 
       <div className="gallery-grid">
         {loading

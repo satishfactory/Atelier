@@ -9,7 +9,7 @@ export const SERVER = (window.location.hostname === 'localhost' || window.locati
   : 'https://atelier-production-836b.up.railway.app'
 
 export function friendlyError(msg) {
-  if (!msg || msg === 'Failed to fetch') return 'Could not reach the server. Make sure it is running on port 3001.'
+  if (!msg || msg === 'Failed to fetch' || msg === 'Load failed') return 'Could not reach the server. Make sure it is running on port 3001.'
   if (/rate.?limit/i.test(msg)) return 'Rate limit reached. Please wait a moment and try again.'
   if (/image/i.test(msg)) return 'Problem with the image. Try a smaller or different file.'
   if (/timeout/i.test(msg)) return 'The request timed out. Please try again.'
