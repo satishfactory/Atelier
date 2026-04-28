@@ -5,6 +5,7 @@ import HomeScreen from './screens/HomeScreen'
 import GalleryScreen from './screens/GalleryScreen'
 import UploadScreen from './screens/UploadScreen'
 import PaintingDetailScreen from './screens/PaintingDetailScreen'
+import StoryDetailScreen    from './screens/StoryDetailScreen'
 import BlogScreen from './screens/BlogScreen'
 import ProfileScreen from './screens/ProfileScreen'
 import OnboardingScreen from './screens/OnboardingScreen'
@@ -14,7 +15,8 @@ import BottomNav from './components/BottomNav'
 
 export default function App() {
   const [screen,       setScreen]       = useState('home')
-  const [selectedSlug, setSelectedSlug] = useState(null)
+  const [selectedSlug,      setSelectedSlug]      = useState(null)
+  const [selectedStorySlug, setSelectedStorySlug] = useState(null)
   const [onboarded,    setOnboarded]    = useState(() => !!localStorage.getItem('onboarding_complete'))
   const [userId,       setUserId]       = useState(null)
   const [authReady,    setAuthReady]    = useState(false)
@@ -36,9 +38,19 @@ export default function App() {
     setScreen('detail')
   }
 
+  function openStory(slug) {
+    setSelectedStorySlug(slug)
+    setScreen('story-detail')
+  }
+
   function goBack() {
     setScreen(selectedSlug ? 'gallery' : 'home')
     setSelectedSlug(null)
+  }
+
+  function goBackFromStory() {
+    setScreen('gallery')
+    setSelectedStorySlug(null)
   }
 
   if (!authReady) return (
@@ -59,12 +71,13 @@ export default function App() {
       <main className="app-main">
         {screen === 'home'    && <HomeScreen    userId={userId} onPaintingClick={openPainting} onNavigate={setScreen} onSignOut={signOut} />}
         {screen === 'upload'  && <UploadScreen  userId={userId} onPaintingClick={openPainting} onNavigate={setScreen} />}
-        {screen === 'gallery' && <GalleryScreen userId={userId} onPaintingClick={openPainting} onNavigate={setScreen} />}
+        {screen === 'gallery' && <GalleryScreen userId={userId} onPaintingClick={openPainting} onStoryClick={openStory} onNavigate={setScreen} />}
         {screen === 'blog'    && <BlogScreen    userId={userId} onPaintingClick={openPainting} onNavigate={setScreen} />}
         {screen === 'profile' && <ProfileScreen userId={userId} onPaintingClick={openPainting} onNavigate={setScreen} onSignOut={signOut} />}
-        {screen === 'detail'  && <PaintingDetailScreen userId={userId} slug={selectedSlug} onBack={goBack} onNavigate={setScreen} onPaintingClick={openPainting} />}
+        {screen === 'detail'       && <PaintingDetailScreen userId={userId} slug={selectedSlug}      onBack={goBack}          onNavigate={setScreen} onPaintingClick={openPainting} />}
+        {screen === 'story-detail' && <StoryDetailScreen    userId={userId} slug={selectedStorySlug} onBack={goBackFromStory} />}
       </main>
-      {screen !== 'detail' && <BottomNav screen={screen} onNavigate={setScreen} />}
+      {screen !== 'detail' && screen !== 'story-detail' && <BottomNav screen={screen} onNavigate={setScreen} />}
     </div>
   )
 }

@@ -1,16 +1,23 @@
 import { useEffect, useState } from 'react'
 import '../styles/design-system.css'
-import { getBlogPosts, getPaintings, friendlyError, SERVER } from '../lib/supabase'
+import { getBlogPosts, getPaintings, getStoryBlogsForScreen, friendlyError, SERVER } from '../lib/supabase'
 import BlogPostCard from '../components/BlogPostCard'
 
+function fmt(d) {
+  if (!d) return ''
+  return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
 export default function BlogScreen({ userId, onPaintingClick }) {
-  const [posts, setPosts]         = useState([])
-  const [paintings, setPaintings] = useState([])
-  const [slug, setSlug]           = useState('')
-  const [generating, setGenerating] = useState(false)
+  const [posts,       setPosts]       = useState([])
+  const [storyBlogs,  setStoryBlogs]  = useState([])
+  const [paintings,   setPaintings]   = useState([])
+  const [slug,        setSlug]        = useState('')
+  const [generating,  setGenerating]  = useState(false)
 
   useEffect(() => {
     getBlogPosts(userId).then(setPosts).catch(() => {})
+    getStoryBlogsForScreen(userId).then(setStoryBlogs).catch(() => {})
     getPaintings(userId, { type: 'artist_work' }).then(ps => {
       setPaintings(ps)
       if (ps.length) setSlug(ps[0].slug)
@@ -43,8 +50,31 @@ export default function BlogScreen({ userId, onPaintingClick }) {
 
   return (
     <div className="blog-screen">
+      {/* 1 — TRAVEL STORIES */}
+      {storyBlogs.length > 0 && (
+        <section className="home-section">
+          <p className="t-micro home-section-label">Travel Stories</p>
+          {storyBlogs.map(b => (
+            <div key={b.id} style={{ padding: '10px 0', borderBottom: '0.5px solid var(--border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <p className="t-small" style={{ fontWeight: 500, flex: 1 }}>
+                  {b.title || b.story_slug}
+                </p>
+                <span style={{ fontSize: 10, fontFamily: 'var(--font-sans)', fontWeight: 600,
+                  letterSpacing: '0.06em', textTransform: 'uppercase',
+                  color: 'var(--teal)', border: '0.5px solid var(--teal)',
+                  borderRadius: 'var(--radius-full)', padding: '2px 8px' }}>
+                  Travel Story
+                </span>
+                <span className={`blog-status blog-status--${b.status}`}>{b.status}</span>
+              </div>
+              <p className="t-micro" style={{ color: 'var(--text-muted)' }}>{fmt(b.created_at)}</p>
+            </div>
+          ))}
+        </section>
+      )}
 
-      {/* 1 YOUR WRITING */}
+      {/* 2 — PAINTING POSTS */}
       <section className="home-section">
         <p className="t-micro home-section-label">Your writing</p>
         {posts.length === 0
@@ -62,11 +92,11 @@ export default function BlogScreen({ userId, onPaintingClick }) {
         }
       </section>
 
-      {/* 2 GENERATE NEW POST */}
+      {/* 3 — GENERATE NEW POST */}
       <section className="home-section">
         <p className="t-micro home-section-label">Generate new post</p>
         <p className="t-small" style={{ color: 'var(--text-muted)', marginBottom: 12 }}>
-          Writes a process journal entry in your voice — drawing on the painting's evaluation history, companion conversations, and your notes. Saved as a draft you can edit before publishing.
+          Writes a process journal entry in your voice — drawing on the painting's evaluation history, companion conversations, and your notes.
         </p>
         <select value={slug} onChange={e => setSlug(e.target.value)}
           style={{ fontSize: 13, padding: '6px 10px', borderRadius: 'var(--radius-sm)',
@@ -80,13 +110,13 @@ export default function BlogScreen({ userId, onPaintingClick }) {
         </button>
         {generating && (
           <div>
-            <div className="skeleton" style={{ height: 14, width: '88%', marginBottom: 10, borderRadius: 4 }} />
-            <div className="skeleton" style={{ height: 14, width: '72%', marginBottom: 10, borderRadius: 4 }} />
-            <div className="skeleton" style={{ height: 14, width: '80%', borderRadius: 4 }} />
+            {[88, 72, 80].map((w, i) => (
+              <div key={i} className="skeleton"
+                style={{ height: 14, width: `${w}%`, marginBottom: 10, borderRadius: 4 }} />
+            ))}
           </div>
         )}
       </section>
-
     </div>
   )
 }

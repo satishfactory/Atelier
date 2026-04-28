@@ -815,6 +815,10 @@ app.delete('/api/literature/:id', async (req, res) => {
   res.json({ ok: true })
 })
 
+// ── Story blog generator (SSE streaming) ─────────────────────
+import { storyExpand } from './api/story-expand.js'
+app.post('/api/story-expand', storyExpand)
+
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
   console.log(`ArtMind server running on http://localhost:${PORT}`)

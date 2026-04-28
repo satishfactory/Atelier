@@ -353,3 +353,135 @@ export async function signOut() {
   const { error } = await supabase.auth.signOut()
   if (error) throw error
 }
+
+// ─── Stories ─────────────────────────────────────────────────────────────────
+
+export async function getStories(userId, status = null) {
+  let query = supabase
+    .from('stories')
+    .select('*, story_media(public_url, is_cover, sort_order)')
+    .order('created_at', { ascending: false })
+  if (userId) query = query.eq('user_id', userId)
+  if (status)  query = query.eq('status', status)
+  const { data, error } = await query
+  if (error) throw error
+  return data
+}
+
+export async function getStory(userId, slug) {
+  let query = supabase
+    .from('stories')
+    .select('*, story_media(*), story_sessions(*), story_blogs(*)')
+    .eq('slug', slug)
+  if (userId) query = query.eq('user_id', userId)
+  const { data, error } = await query.single()
+  if (error) throw error
+  return data
+}
+
+export async function upsertStory(userId, story) {
+  const row = { ...story }
+  if (userId) row.user_id = userId
+  const { data, error } = await supabase
+    .from('stories')
+    .upsert(row, { onConflict: 'user_id,slug' })
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function updateStory(slug, updates) {
+  const { data, error } = await supabase
+    .from('stories')
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq('slug', slug)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function addStorySession(userId, session) {
+  const row = { ...session }
+  if (userId) row.user_id = userId
+  const { data, error } = await supabase
+    .from('story_sessions')
+    .insert(row)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function uploadStoryImage(userId, slug, file, sortOrder = 0) {
+  const ext = file.name.split('.').pop()
+  const storagePath = `${slug}/${Date.now()}.${ext}`
+  const { error: uploadError } = await supabase.storage
+    .from('story-images')
+    .upload(storagePath, file, { contentType: file.type })
+  if (uploadError) throw uploadError
+
+  const { data: urlData } = supabase.storage
+    .from('story-images')
+    .getPublicUrl(storagePath)
+
+  const row = {
+    story_slug:   slug,
+    storage_path: storagePath,
+    public_url:   urlData.publicUrl,
+    sort_order:   sortOrder,
+    is_cover:     sortOrder === 0,
+  }
+  if (userId) row.user_id = userId
+
+  const { data, error } = await supabase
+    .from('story_media')
+    .insert(row)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function updateStoryMediaCaption(mediaId, caption) {
+  const { error } = await supabase
+    .from('story_media')
+    .update({ caption })
+    .eq('id', mediaId)
+  if (error) throw error
+}
+
+export async function saveStoryBlog(userId, storySlug, title, content) {
+  const row = { story_slug: storySlug, title, content, status: 'draft' }
+  if (userId) row.user_id = userId
+  const { data, error } = await supabase
+    .from('story_blogs')
+    .insert(row)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function updateStoryBlog(blogId, updates) {
+  const { data, error } = await supabase
+    .from('story_blogs')
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq('id', blogId)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function getStoryBlogsForScreen(userId) {
+  let query = supabase
+    .from('story_blogs')
+    .select('id, title, status, story_slug, content, created_at')
+    .order('created_at', { ascending: false })
+  if (userId) query = query.eq('user_id', userId)
+  const { data, error } = await query
+  if (error) throw error
+  return data
+}

@@ -9,6 +9,7 @@
     "thumbnails": "node scripts/add-thumbnails.js",
     "upload-images": "node scripts/upload-images.js",
     "create-folders": "node scripts/create-painting-folders.js",
+    "ingest-stories": "node scripts/ingest-stories.js",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
