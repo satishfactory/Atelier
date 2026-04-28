@@ -87,7 +87,7 @@ export default function StoryBlogPanel({ userId, story }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
           <p className="t-micro detail-label">Saved Drafts</p>
           {blogs.map(b => (
-            <StoryBlogEditor key={b.id} blog={b}
+            <StoryBlogEditor key={b.id} blog={b} media={story.story_media || []}
               onUpdate={updated => setBlogs(prev => prev.map(x => x.id === updated.id ? updated : x))} />
           ))}
         </div>
