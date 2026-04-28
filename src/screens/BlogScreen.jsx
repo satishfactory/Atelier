@@ -8,7 +8,7 @@ function fmt(d) {
   return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-export default function BlogScreen({ userId, onPaintingClick }) {
+export default function BlogScreen({ userId, onPaintingClick, onStoryClick }) {
   const [posts,       setPosts]       = useState([])
   const [storyBlogs,  setStoryBlogs]  = useState([])
   const [paintings,   setPaintings]   = useState([])
@@ -55,7 +55,9 @@ export default function BlogScreen({ userId, onPaintingClick }) {
         <section className="home-section">
           <p className="t-micro home-section-label">Travel Stories</p>
           {storyBlogs.map(b => (
-            <div key={b.id} style={{ padding: '10px 0', borderBottom: '0.5px solid var(--border)' }}>
+            <div key={b.id} onClick={() => onStoryClick?.(b.story_slug)}
+              style={{ padding: '10px 0', borderBottom: '0.5px solid var(--border)',
+                cursor: onStoryClick ? 'pointer' : 'default' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                 <p className="t-small" style={{ fontWeight: 500, flex: 1 }}>
                   {b.title || b.story_slug}

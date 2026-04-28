@@ -72,7 +72,7 @@ export default function App() {
         {screen === 'home'    && <HomeScreen    userId={userId} onPaintingClick={openPainting} onNavigate={setScreen} onSignOut={signOut} />}
         {screen === 'upload'  && <UploadScreen  userId={userId} onPaintingClick={openPainting} onNavigate={setScreen} />}
         {screen === 'gallery' && <GalleryScreen userId={userId} onPaintingClick={openPainting} onStoryClick={openStory} onNavigate={setScreen} />}
-        {screen === 'blog'    && <BlogScreen    userId={userId} onPaintingClick={openPainting} onNavigate={setScreen} />}
+        {screen === 'blog'    && <BlogScreen    userId={userId} onPaintingClick={openPainting} onStoryClick={openStory} onNavigate={setScreen} />}
         {screen === 'profile' && <ProfileScreen userId={userId} onPaintingClick={openPainting} onNavigate={setScreen} onSignOut={signOut} />}
         {screen === 'detail'       && <PaintingDetailScreen userId={userId} slug={selectedSlug}      onBack={goBack}          onNavigate={setScreen} onPaintingClick={openPainting} />}
         {screen === 'story-detail' && <StoryDetailScreen    userId={userId} slug={selectedStorySlug} onBack={goBackFromStory} />}
